@@ -1,21 +1,20 @@
-const db = require("../database");
+const db = require("./database");
 const express = require("express");
+const addUser = require("./database/controllers.js").addUser;
 require("dotenv").config();
 const app = express();
-const addUser = require("../database/controllers.js").addUser;
 
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  console.log("got a get");
-  res.send("nice");
+  console.log("GET");
+  res.send();
 });
 
 app.post("/user", (req, res) => {
-  console.log(req.body);
+  console.log("POST:", req.body);
   addUser(req.body).then(() => {
-    console.log("added!");
-    res.send("success!");
+    res.status(201).send("success!");
   });
 });
 
