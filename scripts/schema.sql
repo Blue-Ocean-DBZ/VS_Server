@@ -4,8 +4,9 @@ CREATE TABLE users (
   username VARCHAR NOT NULL,
   session_id VARCHAR NOT NULL,
   profile_pic VARCHAR DEFAULT NULL,
+  zip VARCHAR NOT NULL,
   longitude DECIMAL NOT NULL,
-  latitude DECIMAL NOT NULL
+  latitude DECIMAL NOT NULL,
 );
 
 CREATE TABLE plants (
@@ -16,7 +17,8 @@ CREATE TABLE plants (
   owner_id INT,
   CONSTRAINT fk_owner
   FOREIGN KEY(owner_id)
-  REFERENCES "users"(id)
+  REFERENCES "users"(id),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE favorites (
@@ -28,7 +30,8 @@ CREATE TABLE favorites (
   plant_id INT,
   CONSTRAINT fk_plant_id
   FOREIGN KEY(plant_id)
-  REFERENCES "plants"(id)
+  REFERENCES "plants"(id),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE messages (

@@ -12,8 +12,26 @@ const pool = new Pool({
 const db = Promise.promisifyAll(pool, { multiArgs: true });
 
 module.exports = {
-  addUser: function () {
-    return db;
+  addUser: function (req, res) {
+    return db
+      .query(
+        `INSERT INTO users (username, session_id, profile_pic, longitude, latitude) \
+       VALUES ($1, $2, $3, $4, $5)`,
+        [
+          req.params.username,
+          req.params.session_id,
+          req.params.profile_pic,
+          req.params.longitude,
+          req.params.latitude,
+        ]
+      )
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   editUser: function () {
