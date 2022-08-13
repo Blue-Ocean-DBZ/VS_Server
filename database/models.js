@@ -50,12 +50,16 @@ const tradeSchema = new mongoose.Schema({
   pending: Boolean,
 });
 
+const Plant = mongoose.model("Plant", plantSchema);
 const User = mongoose.model("User", userSchema);
+const Trade = mongoose.model("Trade", tradeSchema);
+userSchema.index({ location: "2dsphere" });
 
 const save = function (userObject) {
   let user = new User(userObject);
   return user.save();
 };
 
+module.exports.Plant = Plant;
 module.exports.save = save;
 module.exports.User = User;

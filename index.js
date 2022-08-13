@@ -1,6 +1,7 @@
 const db = require("./database");
 const express = require("express");
 const addUser = require("./database/controllers.js").addUser;
+const controllers = require("./database/controllers.js");
 require("dotenv").config();
 const app = express();
 
@@ -17,6 +18,12 @@ app.post("/user", (req, res) => {
     res.status(201).send("success!");
   });
 });
+
+app.get("/all", controllers.findByLocation);
+
+app.post("/plant", controllers.addPlant);
+
+app.delete("/plant/:id", controllers.removePlant);
 
 app.listen(process.env.PORT);
 console.log(`listening on port ${process.env.PORT}`);
