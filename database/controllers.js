@@ -1,58 +1,51 @@
-const mongoose = require("mongoose");
-const User = require("./models.js").User;
-const Plant = require("./models.js").Plant;
-const save = require("./models.js").save;
+const { Pool } = require("pg");
+const Promise = require("bluebird");
+
+const pool = new Pool({
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+});
+
+const db = Promise.promisifyAll(pool, { multiArgs: true });
 
 module.exports = {
-  addUser: function (userObject) {
-    return save(userObject);
+  addUser: function () {
+    return db;
   },
 
-  editUser: function (userId) {},
-
-  addPlant: function (req, res) {
-    console.log("called");
-    let userId = req.body.userId;
-    let plantObject = req.body.plantObject;
-
-    User.find({ _id: userId }).then((data) => {
-      console.log(data);
-      res.send();
-    });
+  editUser: function () {
+    return;
   },
 
-  addToFavorites: function (userId, plantId) {},
-
-  removeFromFavorites: function (userId, plantId) {},
-
-  requestTrade: function (userId, targetUserId, plantsOffer, plantsRequest) {},
-
-  handleTrade: function (tradeId, acceptOrReject) {},
-
-  removePlant: function (req, res) {
-    Plant.findByIdAndRemove({ _id: req.params.id }).then(() => {
-      console.log("removed");
-      res.send();
-    });
+  addPlant: function () {
+    return;
   },
 
-  findByLocation: function (req, res) {
-    let long = req.query.long;
-    let latt = req.query.latt;
-    console.log(long, latt);
-    User.find({
-      location: {
-        $near: {
-          $maxDistance: 32186.9,
-          $geometry: {
-            type: "Point",
-            coordinates: [long, latt],
-          },
-        },
-      },
-    }).then((response) => {
-      res.send(response);
-    });
+  addToFavorites: function () {
+    return;
+  },
+
+  removeFromFavorites: function () {
+    return;
+  },
+
+  requestTrade: function () {
+    return;
+  },
+
+  handleTrade: function () {
+    return;
+  },
+
+  removePlant: function () {
+    return;
+  },
+
+  findByLocation: function () {
+    return;
   },
 };
 

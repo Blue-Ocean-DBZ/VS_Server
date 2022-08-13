@@ -43,3 +43,5 @@ const fakeEntryDalyCity = {
     coordinates: [122.4702, 37.6879],
   },
 };
+
+console.log(fakeEntryDalyCity, fakeEntrySanFrancisco);
