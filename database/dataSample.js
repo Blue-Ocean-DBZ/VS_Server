@@ -1,4 +1,5 @@
 const fakeEntrySanFrancisco = {
+
   name: "Shannon",
   profile_picture: "url1.com",
   username: "plantLover69",

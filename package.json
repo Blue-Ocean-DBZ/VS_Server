@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "initialize": "node scripts/initializeDB.js",
+
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -25,6 +26,7 @@
     "nodemon": "^2.0.19",
     "path": "^0.12.7",
     "pg": "^8.7.3"
+
   },
   "devDependencies": {
     "eslint": "^8.21.0",
