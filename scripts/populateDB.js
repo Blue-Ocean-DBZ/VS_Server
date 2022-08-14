@@ -2,6 +2,7 @@ const { Pool } = require("pg");
 const Promise = require("bluebird");
 const { faker } = require("@faker-js/faker");
 require("dotenv").config();
+const plantPhotos = require("../plantPhotos.js");
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -39,7 +40,11 @@ let populateData = async function () {
       return db.queryAsync(
         `INSERT INTO plants (plant_name, photo, owner_id) \
       VALUES ($1, $2, $3)`,
-        [faker.name.lastName(), faker.image.image(), (i % 250) + 1]
+        [
+          faker.name.lastName(),
+          plantPhotos[Math.floor(Math.random() * 10)],
+          (i % 250) + 1,
+        ]
       );
     })
   );

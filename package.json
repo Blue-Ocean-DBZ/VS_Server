@@ -4,6 +4,7 @@
   "description": "Server for Vegetation Station iOS app",
   "main": "index.js",
   "scripts": {
+    "populate": "node scripts/populateDB.js",
     "initialize": "node scripts/initializeDB.js",
     "start": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"

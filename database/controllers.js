@@ -155,15 +155,3 @@ module.exports = {
       });
   },
 };
-
-// 20 mi => 32186.9 meters;
-// 150 mi => 241402 meters;
-// addPlant
-// findByLocation
-// addToFavorites
-// requestTrade
-// handleTrade
-// addUser
-// editUser
-// removePlant
-// removeFromFavorites
