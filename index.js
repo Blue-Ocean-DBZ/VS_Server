@@ -15,5 +15,7 @@ app.post("/favorites", controllers.addToFavorites);
 
 app.delete("/plant", controllers.removePlant);
 
+app.get("/findByLocation", controllers.findByLocation);
+
 app.listen(process.env.PORT);
 console.log(`listening on port ${process.env.PORT}`);

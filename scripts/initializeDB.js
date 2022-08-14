@@ -64,6 +64,7 @@ const trades_table = `CREATE TABLE trades ( \
   id SERIAL PRIMARY KEY, \
   pending BOOLEAN DEFAULT true, \
   accepted BOOLEAN DEFAULT NULL, \
+  shown_to_user BOOLEAN DEFAULT false, \
   user_offer_id INT, \
   CONSTRAINT fk_user_offer \
   FOREIGN KEY(user_offer_id) \
