@@ -11,7 +11,9 @@ app.post("/plant", controllers.addPlant);
 
 app.post("/user", controllers.addUser);
 
-app.delete("/plant/:id", controllers.removePlant);
+app.post("/favorites", controllers.addToFavorites);
+
+app.delete("/plant", controllers.removePlant);
 
 app.listen(process.env.PORT);
 console.log(`listening on port ${process.env.PORT}`);

@@ -29,7 +29,7 @@ module.exports = {
         ]
       )
       .then(() => {
-        res.status(204).send();
+        res.status(201).send();
       })
       .catch((err) => {
         console.log(err);
@@ -41,16 +41,49 @@ module.exports = {
     return;
   },
 
-  addPlant: function () {
-    return;
+  addPlant: function (req, res) {
+    return db
+      .queryAsync(
+        `INSERT INTO plants (plant_name, photo, owner_id) \
+    VALUES ($1, $2, $3)`,
+        [req.body.plant_name, req.body.photo, req.body.owner_id]
+      )
+      .then(() => {
+        res.status(201).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
-  addToFavorites: function () {
-    return;
+  addToFavorites: function (req, res) {
+    return db
+      .queryAsync(`INSERT INTO favorites (user_id, plant_id) VALUES ($1, $2)`, [
+        req.body.user_id,
+        req.body.plant_id,
+      ])
+      .then(() => {
+        res.status(201).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
-
-  removeFromFavorites: function () {
-    return;
+  //untested removeFromFavorites
+  removeFromFavorites: function (req, res) {
+    return db
+      .queryAsync(`UPDATE favorites SET deleted = true WHERE id = $1`, [
+        req.body.favorites_id,
+      ])
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   requestTrade: function () {
@@ -61,8 +94,19 @@ module.exports = {
     return;
   },
 
-  removePlant: function () {
-    return;
+  removePlant: function (req, res) {
+    console.log(req.query);
+    return db
+      .queryAsync(`UPDATE plants SET deleted = true WHERE id = $1`, [
+        req.query.plant_id,
+      ])
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   findByLocation: function () {

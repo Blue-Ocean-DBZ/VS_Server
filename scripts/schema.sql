@@ -28,6 +28,7 @@ CREATE TABLE favorites (
   CONSTRAINT fk_user
   FOREIGN KEY(user_id)
   REFERENCES "users"(id),
+  deleted BOOLEAN DEFAULT false,
   plant_id INT,
   CONSTRAINT fk_plant_id
   FOREIGN KEY(plant_id)
