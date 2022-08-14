@@ -44,9 +44,9 @@ module.exports = {
   addPlant: function (req, res) {
     return db
       .queryAsync(
-        `INSERT INTO plants (plant_name, photo, owner_id) \
+        `INSERT INTO plants (plant_name, photo, user_id) \
     VALUES ($1, $2, $3)`,
-        [req.body.plant_name, req.body.photo, req.body.owner_id]
+        [req.body.plant_name, req.body.photo, req.body.user_id]
       )
       .then(() => {
         res.status(201).send();
@@ -140,7 +140,7 @@ module.exports = {
                 ST_Distance(u.geolocation, wr.geolocation) < 32000 \
             ) inRange \
           ON \
-            p.owner_id = inRange.id
+            p.user_id = inRange.id
           WHERE
             p.deleted = false
           `,

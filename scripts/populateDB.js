@@ -38,7 +38,7 @@ let populateData = async function () {
   await Promise.all(
     arr2.map(function (e, i) {
       return db.queryAsync(
-        `INSERT INTO plants (plant_name, photo, owner_id) \
+        `INSERT INTO plants (plant_name, photo, user_id) \
       VALUES ($1, $2, $3)`,
         [
           faker.name.lastName(),

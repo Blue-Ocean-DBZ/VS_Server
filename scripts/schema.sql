@@ -15,12 +15,14 @@ CREATE TABLE plants (
   plant_name VARCHAR NOT NULL,
   photo VARCHAR NOT NULL,
   deleted BOOLEAN DEFAULT false,
-  owner_id INT,
+  user_id INT,
   CONSTRAINT fk_owner
-  FOREIGN KEY(owner_id)
+  FOREIGN KEY(user_id)
   REFERENCES "users"(id),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX plants_user_id_idx ON "plants"(user_id)
 
 CREATE TABLE favorites (
   id SERIAL PRIMARY KEY,
@@ -36,6 +38,9 @@ CREATE TABLE favorites (
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX favorites_user_id_idx ON "favorites"(user_id)
+
+
 CREATE TABLE messages (
   id SERIAL PRIMARY KEY,
   user_id_one INT,
@@ -49,6 +54,11 @@ CREATE TABLE messages (
   content VARCHAR NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX messages_user_id_one_idx ON "messages"(user_id_one)
+CREATE INDEX messages_user_id_two_idx ON "messages"(user_id_two)
+
+
 
 CREATE TABLE trades (
   id SERIAL PRIMARY KEY,
@@ -70,6 +80,9 @@ CREATE TABLE trades (
   REFERENCES "users"(id)
 );
 
+CREATE INDEX trades_user_offer_id_idx ON "trades"(user_offer_id);
+CREATE INDEX trades_user_target_id_idx ON "trades"(user_target_id);
+
 CREATE TABLE trade_components (
   id SERIAL PRIMARY KEY,
   trade_id INT,
@@ -85,4 +98,6 @@ CREATE TABLE trade_components (
   FOREIGN KEY(user_id)
   REFERENCES "plants"(id)
 );
+
+CREATE INDEX trade_components_user_id_idx ON "trade_components"(user_id)
 

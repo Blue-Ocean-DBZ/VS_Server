@@ -25,9 +25,9 @@ const plants_table = `CREATE TABLE plants (\
   plant_name VARCHAR NOT NULL, \
   photo VARCHAR NOT NULL, \
   deleted BOOLEAN DEFAULT false, \
-  owner_id INT, \
+  user_id INT, \
   CONSTRAINT fk_owner \
-  FOREIGN KEY(owner_id) \
+  FOREIGN KEY(user_id) \
   REFERENCES "users"(id), \
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP \
 );`;
@@ -96,6 +96,14 @@ const trade_components_table = `CREATE TABLE trade_components ( \
   REFERENCES "plants"(id) \
 );`;
 
+const plant_idx = `CREATE INDEX plants_user_id_idx ON "plants"(user_id);`;
+const favorites_idx = `CREATE INDEX favorites_user_id_idx ON "favorites"(user_id);`;
+const msg_idx_one = `CREATE INDEX messages_user_id_one_idx ON "messages"(user_id_one);`;
+const msg_idx_two = `CREATE INDEX messages_user_id_two_idx ON "messages"(user_id_two);`;
+const trade_idx_one = `CREATE INDEX trades_user_offer_id_idx ON "trades"(user_offer_id);`;
+const trade_idx_two = `CREATE INDEX trades_user_target_id_idx ON "trades"(user_target_id);`;
+const trade_components_idx = `CREATE INDEX trade_components_user_id_idx ON "trade_components"(user_id);`;
+
 client
   .connect()
   .then(() => {
@@ -108,17 +116,43 @@ client
     return client.query(plants_table);
   })
   .then(() => {
+    return client.query(plant_idx);
+  })
+  .then(() => {
     return client.query(favorites_table);
+  })
+  .then(() => {
+    return client.query(favorites_idx);
   })
   .then(() => {
     return client.query(messages_table);
   })
   .then(() => {
+    return client.query(msg_idx_one);
+  })
+  .then(() => {
+    return client.query(msg_idx_two);
+  })
+  .then(() => {
     return client.query(trades_table);
+  })
+  .then(() => {
+    return client.query(trade_idx_one);
+  })
+  .then(() => {
+    return client.query(trade_idx_two);
   })
   .then(() => {
     return client.query(trade_components_table);
   })
+  .then(() => {
+    return client.query(trade_components_idx);
+  })
+  .then(() => {
+    console.log("Tables and indices created, PostGIS extension enabled");
+    client.end();
+  })
   .catch((err) => {
     console.log(err);
+    client.end();
   });
