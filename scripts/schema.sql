@@ -7,6 +7,7 @@ CREATE TABLE users (
   zip VARCHAR NOT NULL,
   longitude DECIMAL NOT NULL,
   latitude DECIMAL NOT NULL,
+  geolocation GEOGRAPHY(point) NOT NULL
 );
 
 CREATE TABLE plants (

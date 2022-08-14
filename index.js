@@ -9,6 +9,8 @@ app.get("/all", controllers.findByLocation);
 
 app.post("/plant", controllers.addPlant);
 
+app.post("/user", controllers.addUser);
+
 app.delete("/plant/:id", controllers.removePlant);
 
 app.listen(process.env.PORT);

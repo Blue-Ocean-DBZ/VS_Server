@@ -1,5 +1,6 @@
 const { Pool } = require("pg");
 const Promise = require("bluebird");
+require("dotenv").config();
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -13,16 +14,18 @@ const db = Promise.promisifyAll(pool, { multiArgs: true });
 
 module.exports = {
   addUser: function (req, res) {
+    console.log(req.body);
     return db
-      .query(
-        `INSERT INTO users (username, session_id, profile_pic, longitude, latitude) \
-       VALUES ($1, $2, $3, $4, $5)`,
+      .queryAsync(
+        `INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation) \
+       VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`,
         [
-          req.params.username,
-          req.params.session_id,
-          req.params.profile_pic,
-          req.params.longitude,
-          req.params.latitude,
+          req.body.username,
+          req.body.session_id,
+          req.body.profile_pic,
+          req.body.zip,
+          req.body.longitude,
+          req.body.latitude,
         ]
       )
       .then(() => {

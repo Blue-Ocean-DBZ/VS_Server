@@ -15,8 +15,9 @@ const users_table = `CREATE TABLE users (\
   session_id VARCHAR NOT NULL, \
   profile_pic VARCHAR DEFAULT NULL, \
   zip VARCHAR NOT NULL, \
-  longitude DECIMAL NOT NULL, \
-  latitude DECIMAL NOT NULL \
+  longitude DOUBLE PRECISION NOT NULL, \
+  latitude DOUBLE PRECISION NOT NULL, \
+  geolocation geography(point) NOT NULL \
 );`;
 
 const plants_table = `CREATE TABLE plants (\
@@ -95,6 +96,9 @@ const trade_components_table = `CREATE TABLE trade_components ( \
 
 client
   .connect()
+  .then(() => {
+    return client.query(`CREATE EXTENSION postgis`);
+  })
   .then(() => {
     return client.query(users_table);
   })
