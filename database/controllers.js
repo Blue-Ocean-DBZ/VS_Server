@@ -114,35 +114,36 @@ module.exports = {
     return db
       .queryAsync(
         `
-    SELECT p.* \
-      FROM \
-        plants p \
-      INNER JOIN \
-        ( \
-          SELECT \
-            u.id, \
-            ST_Distance(u.geolocation, wr.geolocation) distance \
+        SELECT p.* \
           FROM \
-            users u, \
-          LATERAL \
-          ( \
-            SELECT \
-              id, \
-              geolocation \
-            FROM \
-              users \
-            WHERE \
-              users.id = $1 \
-          ) as wr \
-          WHERE \
-            u.id <> wr.id \
-          AND \
-            ST_Distance(u.geolocation, wr.geolocation) < 32000 \
-          ORDER BY \
-            distance \
-        ) inRange \
-      ON \
-        p.owner_id = inRange.id`,
+            plants p \
+          INNER JOIN \
+            ( \
+              SELECT \
+                u.id, \
+                ST_Distance(u.geolocation, wr.geolocation) distance \
+              FROM \
+                users u, \
+              LATERAL \
+              ( \
+                SELECT \
+                  id, \
+                  geolocation \
+                FROM \
+                  users \
+                WHERE \
+                  users.id = $1 \
+              ) as wr \
+              WHERE \
+                u.id <> wr.id \
+              AND \
+                ST_Distance(u.geolocation, wr.geolocation) < 32000 \
+            ) inRange \
+          ON \
+            p.owner_id = inRange.id
+          WHERE
+            p.deleted = false
+          `,
         [req.query.user_id]
       )
       .then((response) => {

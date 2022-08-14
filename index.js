@@ -12,6 +12,7 @@ app.post("/plant", controllers.addPlant);
 app.post("/user", controllers.addUser);
 
 app.post("/favorites", controllers.addToFavorites);
+app.delete("/favorites", controllers.removeFromFavorites);
 
 app.delete("/plant", controllers.removePlant);
 
