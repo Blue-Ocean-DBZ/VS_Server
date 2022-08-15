@@ -2,7 +2,7 @@ const { Pool } = require("pg");
 const Promise = require("bluebird");
 const { faker } = require("@faker-js/faker");
 require("dotenv").config();
-const plantPhotos = require("../plantPhotos.js");
+const plantPhotos = require("../data/plantPhotos.js");
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -42,7 +42,7 @@ let populateData = async function () {
       VALUES ($1, $2, $3)`,
         [
           faker.name.lastName(),
-          plantPhotos[Math.floor(Math.random() * 10)],
+          plantPhotos[Math.floor(Math.random() * 20)],
           (i % 250) + 1,
         ]
       );

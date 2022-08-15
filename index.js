@@ -11,12 +11,11 @@ app.post("/plant", controllers.addPlant);
 app.delete("/plant", controllers.removePlant);
 
 app.post("/user", controllers.addUser);
+app.put("/user", controllers.editUser);
 
 app.get("/favorites", controllers.getFavorites);
 app.post("/favorites", controllers.addToFavorites);
 app.delete("/favorites", controllers.removeFromFavorites);
-
-app.delete("/plant", controllers.removePlant);
 
 app.get("/trades", controllers.getTrades);
 app.post("/trades", controllers.requestTrade);

@@ -20,7 +20,8 @@ module.exports = {
       .queryAsync(
         `
       WITH coords AS (SELECT * FROM zips WHERE zip = $4)
-      INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation)
+      INSERT INTO users
+      (username, session_id, profile_pic, zip, longitude, latitude, geolocation)
       VALUES ($1, $2, $3, $4,
         (SELECT longitude FROM coords),
         (SELECT latitude FROM coords),
@@ -96,7 +97,15 @@ module.exports = {
   },
 
   getTrades: function (req, res) {
-    return db.query(``);
+    return db
+      .query(``)
+      .then(() => {
+        res.send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   requestTrade: function () {
@@ -104,7 +113,32 @@ module.exports = {
   },
 
   handleTrade: function (req, res) {
-    return db.queryAsync(`UPDATE trades SET pending = false`);
+    return db
+      .queryAsync(
+        `UPDATE trades SET pending = false, accepted = $1 WHERE id = $2`,
+        [req.query.accepted, req.query.trade_id]
+      )
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.send();
+      });
+  },
+
+  showToUser: function (req, res) {
+    return db
+      .queryAsync(`UPDATE trades SET shown_to_user = true WHERE id = $1`, [
+        req.query.trade_id,
+      ])
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   removePlant: function (req, res) {

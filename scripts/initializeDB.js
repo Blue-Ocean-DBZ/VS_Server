@@ -1,7 +1,7 @@
 const pg = require("pg");
 require("dotenv").config();
 const path = require("path");
-const zips_path = path.resolve("zips/zip_code_database_latlong.csv");
+const zips_path = path.resolve("data/zip_code_database_latlong.csv");
 
 let client = new pg.Client({
   user: process.env.DB_USER,

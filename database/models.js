@@ -17,6 +17,7 @@ module.exports = {
             'plant_id', p.id,
             'plant_name', p.plant_name,
             'photo', p.photo,
+            'owner_id', p.user_id,
             'distance', withinTwenty.distance
             )
           ORDER BY
@@ -59,6 +60,7 @@ module.exports = {
             'plant_id', p.id,
             'plant_name', p.plant_name,
             'photo', p.photo,
+            'owner_id', p.user_id,
             'distance', withinThirty.distance
             )
           ORDER BY
@@ -103,6 +105,7 @@ module.exports = {
             'plant_id', p.id,
             'plant_name', p.plant_name,
             'photo', p.photo,
+            'owner_id', p.user_id,
             'distance', withinForty.distance
             )
           ORDER BY
@@ -147,6 +150,7 @@ module.exports = {
             'plant_id', p.id,
             'plant_name', p.plant_name,
             'photo', p.photo,
+            'owner_id', p.user_id,
             'distance', withinFifty.distance
             )
           ORDER BY
