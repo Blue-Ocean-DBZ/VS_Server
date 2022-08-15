@@ -27,7 +27,8 @@ module.exports = {
         ST_SetSRID(ST_MakePoint(
           (SELECT longitude FROM coords), (SELECT latitude FROM coords)
           ), 4326
-        ));
+        ))
+      RETURNING id;
       `,
         [
           req.body.username,
@@ -36,8 +37,9 @@ module.exports = {
           req.body.zip,
         ]
       )
-      .then(() => {
-        res.status(201).send();
+      .then((response) => {
+        console.log(response[0].rows[0].id);
+        res.status(201).send(response[0].rows[0].id.toString());
       })
       .catch((err) => {
         console.log(err);
@@ -53,11 +55,11 @@ module.exports = {
     return db
       .queryAsync(
         `INSERT INTO plants (plant_name, photo, user_id) \
-    VALUES ($1, $2, $3)`,
+    VALUES ($1, $2, $3) RETURNING id`,
         [req.body.plant_name, req.body.photo, req.body.user_id]
       )
-      .then(() => {
-        res.status(201).send();
+      .then((response) => {
+        res.status(201).send(response[0].rows[0].id.toString());
       })
       .catch((err) => {
         console.log(err);
@@ -67,12 +69,12 @@ module.exports = {
 
   addToFavorites: function (req, res) {
     return db
-      .queryAsync(`INSERT INTO favorites (user_id, plant_id) VALUES ($1, $2)`, [
-        req.body.user_id,
-        req.body.plant_id,
-      ])
-      .then(() => {
-        res.status(201).send();
+      .queryAsync(
+        `INSERT INTO favorites (user_id, plant_id) VALUES ($1, $2) RETURNING id`,
+        [req.body.user_id, req.body.plant_id]
+      )
+      .then((response) => {
+        res.status(201).send(response[0].rows[0].id.toString());
       })
       .catch((err) => {
         console.log(err);

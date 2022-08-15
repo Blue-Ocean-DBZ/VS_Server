@@ -19,12 +19,12 @@ const db = Promise.promisifyAll(pool, { multiArgs: true });
 let populateData = async function () {
   let arr = Array(1000).fill(0);
   await Promise.all(
-    arr.map(function () {
+    arr.map(function (e, i) {
       return db.queryAsync(
         `INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation) \
          VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`,
         [
-          faker.name.firstName(),
+          "user" + i,
           Math.random(),
           faker.image.image(),
           faker.address.zipCode(),
