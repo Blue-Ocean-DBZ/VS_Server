@@ -11,6 +11,7 @@ app.post("/plant", controllers.addPlant);
 
 app.post("/user", controllers.addUser);
 
+app.get("/favorites", controllers.getFavorites);
 app.post("/favorites", controllers.addToFavorites);
 app.delete("/favorites", controllers.removeFromFavorites);
 

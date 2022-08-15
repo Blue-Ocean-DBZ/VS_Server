@@ -1,6 +1,7 @@
 const { Pool } = require("pg");
 const Promise = require("bluebird");
 require("dotenv").config();
+const findByLocationQuery = require("./models.js").findByLocationQuery;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -71,11 +72,10 @@ module.exports = {
         res.status(500).send();
       });
   },
-  //untested removeFromFavorites
   removeFromFavorites: function (req, res) {
     return db
       .queryAsync(`UPDATE favorites SET deleted = true WHERE id = $1`, [
-        req.body.favorites_id,
+        req.query.favorites_id,
       ])
       .then(() => {
         res.status(204).send();
@@ -109,43 +109,43 @@ module.exports = {
       });
   },
 
-  findByLocation: function (req, res) {
-    console.log(req.query.user_id);
+  getFavorites: function (req, res) {
     return db
       .queryAsync(
         `
-        SELECT p.* \
-          FROM \
-            plants p \
-          INNER JOIN \
-            ( \
-              SELECT \
-                u.id, \
-                ST_Distance(u.geolocation, wr.geolocation) distance \
-              FROM \
-                users u, \
-              LATERAL \
-              ( \
-                SELECT \
-                  id, \
-                  geolocation \
-                FROM \
-                  users \
-                WHERE \
-                  users.id = $1 \
-              ) as wr \
-              WHERE \
-                u.id <> wr.id \
-              AND \
-                ST_Distance(u.geolocation, wr.geolocation) < 32000 \
-            ) inRange \
-          ON \
-            p.user_id = inRange.id
-          WHERE
-            p.deleted = false
-          `,
+      SELECT
+        f.id favorites_id,
+        p.id plant_id,
+        p.photo,
+        p.user_id owner_id,
+        p.created_at
+      FROM
+        plants p
+      INNER JOIN
+        favorites f
+      ON
+        f.plant_id = p.id
+      WHERE
+        p.deleted = false
+      AND
+        f.user_id = $1
+      AND
+        f.deleted = false;
+    `,
         [req.query.user_id]
       )
+      .then((response) => {
+        res.status(200).send(response[0].rows);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
+  },
+
+  findByLocation: function (req, res) {
+    return db
+      .queryAsync(findByLocationQuery, [req.query.user_id])
       .then((response) => {
         res.status(200).send(response[0].rows);
       })

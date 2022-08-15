@@ -38,11 +38,11 @@ const favorites_table = `CREATE TABLE favorites (\
   CONSTRAINT fk_user \
   FOREIGN KEY(user_id) \
   REFERENCES "users"(id), \
-  deleted BOOLEAN DEFAULT false, \
   plant_id INT, \
   CONSTRAINT fk_plant_id \
   FOREIGN KEY(plant_id) \
   REFERENCES "plants"(id), \
+  deleted BOOLEAN DEFAULT false, \
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP \
 );`;
 
