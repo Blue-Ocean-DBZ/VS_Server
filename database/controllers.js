@@ -1,5 +1,7 @@
 const { Pool } = require("pg");
 const Promise = require("bluebird");
+require("dotenv").config();
+const findByLocationQuery = require("./models.js").findByLocationQuery;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -12,51 +14,194 @@ const pool = new Pool({
 const db = Promise.promisifyAll(pool, { multiArgs: true });
 
 module.exports = {
-  addUser: function () {
-    return db;
+  addUser: function (req, res) {
+    console.log(req.body);
+    return db
+      .queryAsync(
+        `
+      WITH coords AS (SELECT * FROM zips WHERE zip = $4)
+      INSERT INTO users
+      (username, session_id, profile_pic, zip, longitude, latitude, geolocation)
+      VALUES ($1, $2, $3, $4,
+        (SELECT longitude FROM coords),
+        (SELECT latitude FROM coords),
+        ST_SetSRID(ST_MakePoint(
+          (SELECT longitude FROM coords), (SELECT latitude FROM coords)
+          ), 4326
+        ))
+      RETURNING id;
+      `,
+        [
+          req.body.username,
+          req.body.session_id,
+          req.body.profile_pic,
+          req.body.zip,
+        ]
+      )
+      .then((response) => {
+        console.log(response[0].rows[0].id);
+        res.status(201).send(response[0].rows[0].id.toString());
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   editUser: function () {
     return;
   },
 
-  addPlant: function () {
-    return;
+  addPlant: function (req, res) {
+    return db
+      .queryAsync(
+        `INSERT INTO plants (plant_name, photo, user_id) \
+    VALUES ($1, $2, $3) RETURNING id`,
+        [req.body.plant_name, req.body.photo, req.body.user_id]
+      )
+      .then((response) => {
+        res.status(201).send(response[0].rows[0].id.toString());
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
-  addToFavorites: function () {
-    return;
+  addToFavorites: function (req, res) {
+    return db
+      .queryAsync(
+        `INSERT INTO favorites (user_id, plant_id) VALUES ($1, $2) RETURNING id`,
+        [req.body.user_id, req.body.plant_id]
+      )
+      .then((response) => {
+        res.status(201).send(response[0].rows[0].id.toString());
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
+  },
+  removeFromFavorites: function (req, res) {
+    return db
+      .queryAsync(`UPDATE favorites SET deleted = true WHERE id = $1`, [
+        req.query.favorites_id,
+      ])
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
-  removeFromFavorites: function () {
-    return;
+  getTrades: function (req, res) {
+    return db
+      .query(``)
+      .then(() => {
+        res.send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   requestTrade: function () {
     return;
   },
 
-  handleTrade: function () {
-    return;
+  handleTrade: function (req, res) {
+    return db
+      .queryAsync(
+        `UPDATE trades SET pending = false, accepted = $1 WHERE id = $2`,
+        [req.query.accepted, req.query.trade_id]
+      )
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.send();
+      });
   },
 
-  removePlant: function () {
-    return;
+  showToUser: function (req, res) {
+    return db
+      .queryAsync(`UPDATE trades SET shown_to_user = true WHERE id = $1`, [
+        req.query.trade_id,
+      ])
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
-  findByLocation: function () {
-    return;
+  removePlant: function (req, res) {
+    console.log(req.query);
+    return db
+      .queryAsync(`UPDATE plants SET deleted = true WHERE id = $1`, [
+        req.query.plant_id,
+      ])
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
+  },
+
+  getFavorites: function (req, res) {
+    return db
+      .queryAsync(
+        `
+      SELECT
+        f.id favorites_id,
+        p.id plant_id,
+        p.photo,
+        p.user_id owner_id,
+        p.created_at
+      FROM
+        plants p
+      INNER JOIN
+        favorites f
+      ON
+        f.plant_id = p.id
+      WHERE
+        p.deleted = false
+      AND
+        f.user_id = $1
+      AND
+        f.deleted = false;
+    `,
+        [req.query.user_id]
+      )
+      .then((response) => {
+        res.status(200).send(response[0].rows);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
+  },
+
+  findByLocation: function (req, res) {
+    return db
+      .queryAsync(findByLocationQuery, [req.query.user_id])
+      .then((response) => {
+        res.status(200).send(response[0].rows[0].json_build_object);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 };
 
-// 20 mi => 32186.9 meters;
-// 150 mi => 241402 meters;
-// addPlant
-// findByLocation
-// addToFavorites
-// requestTrade
-// handleTrade
-// addUser
-// editUser
-// removePlant
-// removeFromFavorites
+// `INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation) \
+//        VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`

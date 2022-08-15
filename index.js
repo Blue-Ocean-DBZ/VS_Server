@@ -8,9 +8,18 @@ app.use(express.json());
 app.get("/all", controllers.findByLocation);
 
 app.post("/plant", controllers.addPlant);
+app.delete("/plant", controllers.removePlant);
 
-app.delete("/plant/:id", controllers.removePlant);
+app.post("/user", controllers.addUser);
+app.put("/user", controllers.editUser);
 
+app.get("/favorites", controllers.getFavorites);
+app.post("/favorites", controllers.addToFavorites);
+app.delete("/favorites", controllers.removeFromFavorites);
+
+app.get("/trades", controllers.getTrades);
+app.post("/trades", controllers.requestTrade);
+app.put("/trades", controllers.handleTrade);
 
 app.listen(process.env.PORT);
 console.log(`listening on port ${process.env.PORT}`);

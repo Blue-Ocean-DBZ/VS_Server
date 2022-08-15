@@ -1,42 +1,189 @@
-const mongoose = require("mongoose");
-
-// location -> [longitude, latitude]
-
-const plantSchema = new mongoose.Schema({
-  name: String,
-  category: [{ type: String }],
-  photo: String,
-});
-
-const userSchema = new mongoose.Schema({
-  name: String,
-  profile_picture: String,
-  username: String,
-  password: String,
-  plants: [
-    {
-      type: plantSchema,
-    },
-  ],
-  location: {
-    type: {
-      type: String,
-      enum: ["Point"],
-      required: true,
-    },
-    coordinates: {
-      type: [Number],
-      required: true,
-    },
-  },
-});
-
-const User = mongoose.model("User", userSchema);
-
-const save = function (userObject) {
-  let user = new User(userObject);
-  return user.save();
+module.exports = {
+  findByLocationQuery: `
+  SELECT
+    JSON_BUILD_OBJECT(
+      'user_id', $1,
+      'within_20', withinTwenty.distanceArr,
+      'within_30', withinThirty.distanceArr,
+      'within_40', withinForty.distanceArr,
+      'within_50', withinFifty.distanceArr
+      )
+  FROM
+    (
+      SELECT
+        $1 user_id,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'plant_id', p.id,
+            'plant_name', p.plant_name,
+            'photo', p.photo,
+            'owner_id', p.user_id,
+            'distance', withinTwenty.distance
+            )
+          ORDER BY
+            withinTwenty.distance
+          ) distanceArr
+      FROM
+        plants p
+      INNER JOIN
+        (
+          SELECT
+            u.id,
+            ST_Distance(u.geolocation, wr.geolocation) distance
+          FROM
+            users u,
+          LATERAL
+            (
+              SELECT
+                id,
+                geolocation
+              FROM
+                users
+              WHERE
+                users.id = $1
+              ) as wr
+          WHERE
+            u.id != wr.id
+          AND
+            ST_Distance(u.geolocation, wr.geolocation) < 32000
+          ) withinTwenty
+      ON
+        p.user_id = withinTwenty.id
+      WHERE
+        p.deleted = false) withinTwenty
+  INNER JOIN
+    (
+      SELECT
+        $1 user_id,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'plant_id', p.id,
+            'plant_name', p.plant_name,
+            'photo', p.photo,
+            'owner_id', p.user_id,
+            'distance', withinThirty.distance
+            )
+          ORDER BY
+            withinThirty.distance
+          ) distanceArr
+      FROM
+        plants p
+      INNER JOIN
+        (
+          SELECT
+            u.id,
+            ST_Distance(u.geolocation, wr.geolocation) distance
+          FROM
+            users u,
+          LATERAL
+            (
+              SELECT
+                id,
+                geolocation
+              FROM
+                users
+              WHERE
+                users.id = $1
+              ) as wr
+          WHERE
+            u.id != wr.id
+          AND
+            ST_Distance(u.geolocation, wr.geolocation) > 32000
+          AND
+            ST_Distance(u.geolocation, wr.geolocation) < 48000
+          ) withinThirty
+      ON
+        p.user_id = withinThirty.id
+      WHERE
+        p.deleted = false) withinThirty on withinThirty.user_id = withinTwenty.user_id
+  INNER JOIN
+    (
+      SELECT
+        $1 user_id,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'plant_id', p.id,
+            'plant_name', p.plant_name,
+            'photo', p.photo,
+            'owner_id', p.user_id,
+            'distance', withinForty.distance
+            )
+          ORDER BY
+          withinForty.distance
+          ) distanceArr
+      FROM
+        plants p
+      INNER JOIN
+        (
+          SELECT
+            u.id,
+            ST_Distance(u.geolocation, wr.geolocation) distance
+          FROM
+            users u,
+          LATERAL
+            (
+              SELECT
+                id,
+                geolocation
+              FROM
+                users
+              WHERE
+                users.id = $1
+              ) as wr
+          WHERE
+            u.id != wr.id
+          AND
+            ST_Distance(u.geolocation, wr.geolocation) > 48000
+          AND
+            ST_Distance(u.geolocation, wr.geolocation) < 64000
+          ) withinForty
+      ON
+        p.user_id = withinForty.id
+      WHERE
+        p.deleted = false) withinForty on withinForty.user_id = withinTwenty.user_id
+  INNER JOIN
+    (
+      SELECT
+        $1 user_id,
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'plant_id', p.id,
+            'plant_name', p.plant_name,
+            'photo', p.photo,
+            'owner_id', p.user_id,
+            'distance', withinFifty.distance
+            )
+          ORDER BY
+          withinFifty.distance
+          ) distanceArr
+      FROM
+        plants p
+      INNER JOIN
+        (
+          SELECT
+            u.id,
+            ST_Distance(u.geolocation, wr.geolocation) distance
+          FROM
+            users u,
+          LATERAL
+            (
+              SELECT
+                id,
+                geolocation
+              FROM
+                users
+              WHERE
+                users.id = $1
+              ) as wr
+          WHERE
+            u.id != wr.id
+          AND
+            ST_Distance(u.geolocation, wr.geolocation) > 64000
+          AND
+            ST_Distance(u.geolocation, wr.geolocation) < 80000
+          ) withinFifty
+      ON
+        p.user_id = withinFifty.id
+      WHERE
+        p.deleted = false) withinFifty on withinFifty.user_id = withinTwenty.user_id`,
 };
-
-module.exports.save = save;
-module.exports.User = User;

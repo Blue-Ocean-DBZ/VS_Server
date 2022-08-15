@@ -4,6 +4,16 @@ Server for Vegetation Station iOS app
 
 ---
 
+Create a .env file:
+PORT
+DB_NAME
+DB_HOST
+DB_USER
+DB_PASS
+DB_PORT
+
+---
+
 Git Workflow:
 
 To avoid pushes to master, in root directory:
