@@ -1,5 +1,7 @@
 const pg = require("pg");
 require("dotenv").config();
+const path = require("path");
+const zips_path = path.resolve("zips/zip_code_database_latlong.csv");
 
 let client = new pg.Client({
   user: process.env.DB_USER,
@@ -96,6 +98,19 @@ const trade_components_table = `CREATE TABLE trade_components ( \
   REFERENCES "plants"(id) \
 );`;
 
+const zip_coords = `CREATE TABLE zips (
+  id SERIAL PRIMARY KEY,
+  zip VARCHAR,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION
+)`;
+
+const copy_zip = `COPY zips(zip, latitude, longitude)
+FROM '${zips_path}'
+DELIMITER ','
+CSV HEADER;`;
+
+const zip_idx = `CREATE INDEX zip_idx ON "zips"(zip);`;
 const plant_idx = `CREATE INDEX plants_user_id_idx ON "plants"(user_id);`;
 const favorites_idx = `CREATE INDEX favorites_user_id_idx ON "favorites"(user_id);`;
 const msg_idx_one = `CREATE INDEX messages_user_id_one_idx ON "messages"(user_id_one);`;
@@ -108,6 +123,15 @@ client
   .connect()
   .then(() => {
     return client.query(`CREATE EXTENSION postgis`);
+  })
+  .then(() => {
+    return client.query(zip_coords);
+  })
+  .then(() => {
+    return client.query(zip_idx);
+  })
+  .then(() => {
+    return client.query(copy_zip);
   })
   .then(() => {
     return client.query(users_table);

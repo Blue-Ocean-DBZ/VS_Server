@@ -99,5 +99,12 @@ CREATE TABLE trade_components (
   REFERENCES "plants"(id)
 );
 
+CREATE TABLE zipCoords (
+  id SERIAL PRIMARY KEY,
+  zip VARCHAR,
+  longitude DOUBLE PRECISION,
+  latitude DOUBLE PRECISION,
+)
+
 CREATE INDEX trade_components_user_id_idx ON "trade_components"(user_id)
 

@@ -18,15 +18,22 @@ module.exports = {
     console.log(req.body);
     return db
       .queryAsync(
-        `INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation) \
-       VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`,
+        `
+      WITH coords AS (SELECT * FROM zips WHERE zip = $4)
+      INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation)
+      VALUES ($1, $2, $3, $4,
+        (SELECT longitude FROM coords),
+        (SELECT latitude FROM coords),
+        ST_SetSRID(ST_MakePoint(
+          (SELECT longitude FROM coords), (SELECT latitude FROM coords)
+          ), 4326
+        ));
+      `,
         [
           req.body.username,
           req.body.session_id,
           req.body.profile_pic,
           req.body.zip,
-          req.body.longitude,
-          req.body.latitude,
         ]
       )
       .then(() => {
@@ -84,6 +91,10 @@ module.exports = {
         console.log(err);
         res.status(500).send();
       });
+  },
+
+  getTrades: function (req, res) {
+    return db.query(``);
   },
 
   requestTrade: function () {
@@ -155,3 +166,6 @@ module.exports = {
       });
   },
 };
+
+// `INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation) \
+//        VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`
