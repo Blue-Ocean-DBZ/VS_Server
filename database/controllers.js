@@ -90,8 +90,8 @@ module.exports = {
     return;
   },
 
-  handleTrade: function () {
-    return;
+  handleTrade: function (req, res) {
+    return db.queryAsync(`UPDATE trades SET pending = false`);
   },
 
   removePlant: function (req, res) {
@@ -147,7 +147,7 @@ module.exports = {
     return db
       .queryAsync(findByLocationQuery, [req.query.user_id])
       .then((response) => {
-        res.status(200).send(response[0].rows);
+        res.status(200).send(response[0].rows[0].json_build_object);
       })
       .catch((err) => {
         console.log(err);

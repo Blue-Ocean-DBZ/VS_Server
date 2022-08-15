@@ -21,9 +21,12 @@
   "homepage": "https://github.com/Blue-Ocean-DBZ/VS_Server#readme",
   "dependencies": {
     "bluebird": "^3.7.2",
+    "convert-zip-to-gps": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
+    "lodash": "^4.17.21",
+    "node-geocoder": "^4.2.0",
     "nodemon": "^2.0.19",
     "path": "^0.12.7",
     "pg": "^8.7.3"
