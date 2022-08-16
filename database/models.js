@@ -49,18 +49,14 @@ module.exports = {
     LIMIT 100;`,
 
   getTradesQuery: `
-  SELECT JSON_AGG(tradeObj)
-    FROM
-      (
-        SELECT JSON_BUILD_OBJECT(
-        'trade_id', trades.id,
-        'target', targetTable.plantObj,
-        'offer', offerTable.plantObj,
-        'created_at', trades.created_at,
-        'pending', trades.pending,
-        'accepted', trades.accepted,
-        'shown_to_user', trades.shown_to_user
-        ) tradesObj
+      SELECT
+        trades.id,
+        targetTable.plantObj target_plant,
+        offerTable.plantObj offer_plant,
+        trades.created_at,
+        trades.pending,
+        trades.accepted,
+        trades.shown_to_user
       FROM
         trades
       INNER JOIN
@@ -120,7 +116,7 @@ module.exports = {
       WHERE
         trades.user_target_id = $1
       ORDER BY
-        trades.created_at DESC) tradeObj;`,
+        trades.created_at DESC;`,
 
   getFavoritesQuery: `
     SELECT

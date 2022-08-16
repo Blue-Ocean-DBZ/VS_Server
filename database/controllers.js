@@ -88,11 +88,7 @@ module.exports = {
     return db
       .query(getTradesQuery, [req.query.user_id])
       .then((response) => {
-        console.log(response);
-        let arr = response.rows[0].json_agg.map(function (obj) {
-          return obj.tradesobj;
-        });
-        res.send(arr);
+        res.send(response.rows);
       })
       .catch((err) => {
         console.log(err);
