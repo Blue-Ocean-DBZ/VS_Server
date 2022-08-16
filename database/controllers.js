@@ -99,66 +99,78 @@ module.exports = {
   getTrades: function (req, res) {
     return db
       .query(
-        `SELECT JSON_AGG(tradeObj) FROM
-        (SELECT JSON_BUILD_OBJECT(
-        'trade_id', trades.id,
-        'target', targetTable.plantObj,
-        'offer', offerTable.plantObj,
-        'created_at', trades.created_at,
-        'pending', trades.pending,
-        'accepted', trades.accepted,
-        'shown_to_user', trades.shown_to_user
-        ) tradesObj
+        `SELECT JSON_AGG(tradeObj)
         FROM
-          trades
-        INNER JOIN
           (
-            SELECT
-              t.id,
+            SELECT JSON_BUILD_OBJECT(
+            'trade_id', trades.id,
+            'target', targetTable.plantObj,
+            'offer', offerTable.plantObj,
+            'created_at', trades.created_at,
+            'pending', trades.pending,
+            'accepted', trades.accepted,
+            'shown_to_user', trades.shown_to_user
+            ) tradesObj
+          FROM
+            trades
+          INNER JOIN
+            (
+              SELECT
+                t.id,
+                JSON_BUILD_OBJECT
+                (
+                  'plant_id', p.id,
+                  'photo', p.photo,
+                  'owner_id', p.user_id,
+                  'username', u.username
+                ) plantObj
+              FROM
+                trades t
+              INNER JOIN
+                plants p
+              ON
+                p.user_id = user_target_id
+              AND
+                p.id = t.plant_target_id
+              AND
+                p.deleted = false
+              INNER JOIN
+                users u
+              ON
+                u.id = p.id
+              ) targetTable
+          ON targetTable.id = trades.id
+          INNER JOIN
+            (
+              SELECT t.id,
               JSON_BUILD_OBJECT
               (
                 'plant_id', p.id,
                 'photo', p.photo,
-                'owner_id', p.user_id
+                'owner_id', p.user_id,
+                'username', u.username
               ) plantObj
-            FROM
-              trades t
-            INNER JOIN
-              plants p
-            ON
-              p.user_id = user_target_id
-            AND
-              p.id = t.plant_target_id
-            AND
-              p.deleted = false
-            ) targetTable
-        ON targetTable.id = trades.id
-        INNER JOIN
-          (
-            SELECT t.id,
-            JSON_BUILD_OBJECT
-            (
-              'plant_id', p.id,
-              'photo', p.photo,
-              'owner_id', p.user_id
-            ) plantObj
-            FROM
-              trades t
-            INNER JOIN
-              plants p
-            ON
-              p.user_id = user_offer_id
-            AND
-              p.id = t.plant_offer_id
-            AND
-              p.deleted = false
-          ) offerTable
-        ON
-          offerTable.id = targetTable.id
-        WHERE
-          trades.user_target_id = $1
-        ORDER BY
-        trades.created_at DESC) tradeObj;`,
+              FROM
+                trades t
+              INNER JOIN
+                plants p
+              ON
+                p.user_id = user_offer_id
+              AND
+                p.id = t.plant_offer_id
+              AND
+                p.deleted = false
+              INNER JOIN
+                users u
+              ON
+                u.id = p.id
+            ) offerTable
+          ON
+            offerTable.id = targetTable.id
+          WHERE
+            trades.user_target_id = $1
+          ORDER BY
+            trades.created_at DESC) tradeObj;`,
         [req.query.user_id]
       )
       .then((response) => {
