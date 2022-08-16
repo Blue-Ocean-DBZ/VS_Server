@@ -116,6 +116,35 @@ module.exports = {
       });
   },
 
+  getMessages: function (req, res) {
+    return db
+      .queryAsync(
+        `SELECT * FROM messages WHERE trade_id = $1 ORDER BY created_at;`,
+        [req.query.trade_id]
+      )
+      .then((response) => {
+        res.status(200).send(response[0].rows);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
+  },
+
+  postMessage: function (req, res) {
+    return db
+      .queryAsync(
+        `INSERT INTO messages (user_id, trade_id, content) VALUES ($1, $2, $3)`,
+        [req.body.user_id, req.body.trade_id, req.body.content]
+      )
+      .then(() => {
+        res.status(201).send();
+      })
+      .catch(() => {
+        res.status(500).send();
+      });
+  },
+
   handleTrade: function (req, res) {
     return db
       .queryAsync(
