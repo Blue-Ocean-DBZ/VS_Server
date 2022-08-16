@@ -99,7 +99,8 @@ module.exports = {
   getTrades: function (req, res) {
     return db
       .query(
-        `SELECT JSON_BUILD_OBJECT(
+        `SELECT JSON_AGG(tradeObj) FROM
+        (SELECT JSON_BUILD_OBJECT(
         'trade_id', trades.id,
         'target', targetTable.plantObj,
         'offer', offerTable.plantObj,
@@ -157,12 +158,12 @@ module.exports = {
         WHERE
           trades.user_target_id = $1
         ORDER BY
-        trades.created_at DESC;`,
+        trades.created_at DESC) tradeObj;`,
         [req.query.user_id]
       )
       .then((response) => {
         console.log(response);
-        res.send(response.rows);
+        res.send(response.rows[0].json_agg);
       })
       .catch((err) => {
         console.log(err);
