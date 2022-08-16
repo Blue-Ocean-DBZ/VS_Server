@@ -2,11 +2,12 @@ module.exports = {
   findByLocationQuery: `
     SELECT
       t.pending,
-      withinTwenty.username owner_name,
-      p.id,
+      withinTwenty.username,
+      p.id plant_id,
       p.plant_name,
       p.photo,
       p.user_id,
+      withinTwenty.profile_pic,
       withinTwenty.distance
     FROM
       plants p
@@ -14,6 +15,7 @@ module.exports = {
       (
         SELECT
           u.username,
+          u.profile_pic,
           u.id,
           ST_Distance(u.geolocation, distanceTable.geolocation) distance
         FROM
