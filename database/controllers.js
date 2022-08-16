@@ -180,7 +180,7 @@ module.exports = {
     return db
       .queryAsync(findByLocationQuery, [req.query.user_id])
       .then((response) => {
-        res.status(200).send(response[0].rows[0].json_build_object);
+        res.status(200).send(response[0].rows);
       })
       .catch((err) => {
         console.log(err);

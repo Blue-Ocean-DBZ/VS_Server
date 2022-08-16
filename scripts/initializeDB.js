@@ -58,7 +58,6 @@ const messages_table = `CREATE TABLE messages ( \
   CONSTRAINT fk_user_id \
   FOREIGN KEY(user_id) \
   REFERENCES "users"(id), \
-  initiated_request BOOLEAN NOT NULL,
   content VARCHAR NOT NULL, \
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP \
 );`;
@@ -122,6 +121,7 @@ const msg_idx = `CREATE INDEX messages_user_id_idx ON "messages"(user_id);`;
 const trade_idx_one = `CREATE INDEX trades_user_offer_id_idx ON "trades"(user_offer_id);`;
 const trade_idx_two = `CREATE INDEX trades_user_target_id_idx ON "trades"(user_target_id);`;
 const trade_components_idx = `CREATE INDEX trade_components_user_id_idx ON "trade_components"(user_id);`;
+const geo_idx = `CREATE INDEX users_geolocation_idx ON "users"(geolocation);`;
 
 client
   .connect()
@@ -139,6 +139,9 @@ client
   })
   .then(() => {
     return client.query(users_table);
+  })
+  .then(() => {
+    return client.query(geo_idx);
   })
   .then(() => {
     return client.query(plants_table);
