@@ -1,189 +1,179 @@
 module.exports = {
   findByLocationQuery: `
-  SELECT
-    JSON_BUILD_OBJECT(
-      'user_id', $1,
-      'within_20', withinTwenty.distanceArr,
-      'within_30', withinThirty.distanceArr,
-      'within_40', withinForty.distanceArr,
-      'within_50', withinFifty.distanceArr
-      )
-  FROM
-    (
+    SELECT
+      t.pending,
+      withinTwenty.username,
+      p.id plant_id,
+      p.plant_name,
+      p.photo,
+      p.user_id,
+      withinTwenty.profile_pic,
+      withinTwenty.distance
+    FROM
+      plants p
+    INNER JOIN
+      (
+        SELECT
+          u.username,
+          u.profile_pic,
+          u.id,
+          ST_Distance(u.geolocation, distanceTable.geolocation) distance
+        FROM
+          users u,
+        LATERAL
+          (
+            SELECT
+              id,
+              geolocation
+            FROM
+              users
+            WHERE
+              users.id = $1
+          )
+        AS
+          distanceTable
+        WHERE
+          u.id != distanceTable.id
+        AND
+          ST_DWithin(
+            u.geolocation,
+            distanceTable.geolocation,
+            240000
+          )
+        ) withinTwenty
+        ON
+          p.user_id = withinTwenty.id
+    LEFT JOIN trades t on t.plant_target_id = p.id
+    WHERE
+      p.deleted = false
+    ORDER BY
+      distance
+    LIMIT 100;`,
+
+  getTradesQuery: `
       SELECT
-        $1 user_id,
-        JSON_AGG(
-          JSON_BUILD_OBJECT(
-            'plant_id', p.id,
-            'plant_name', p.plant_name,
-            'photo', p.photo,
-            'owner_id', p.user_id,
-            'distance', withinTwenty.distance
-            )
-          ORDER BY
-            withinTwenty.distance
-          ) distanceArr
+        trades.id,
+        targetTable.plantObj target_plant,
+        offerTable.plantObj offer_plant,
+        trades.created_at,
+        trades.pending,
+        trades.accepted,
+        trades.shown_to_user
       FROM
-        plants p
+        trades
       INNER JOIN
         (
           SELECT
-            u.id,
-            ST_Distance(u.geolocation, wr.geolocation) distance
-          FROM
-            users u,
-          LATERAL
+            t.id,
+            JSON_BUILD_OBJECT
             (
-              SELECT
-                id,
-                geolocation
-              FROM
-                users
-              WHERE
-                users.id = $1
-              ) as wr
-          WHERE
-            u.id != wr.id
+              'plant_id', p.id,
+              'photo', p.photo,
+              'owner_id', p.user_id,
+              'username', u.username
+            ) plantObj
+          FROM
+            trades t
+          INNER JOIN
+            plants p
+          ON
+            p.user_id = user_target_id
           AND
-            ST_Distance(u.geolocation, wr.geolocation) < 32000
-          ) withinTwenty
-      ON
-        p.user_id = withinTwenty.id
-      WHERE
-        p.deleted = false) withinTwenty
-  INNER JOIN
-    (
-      SELECT
-        $1 user_id,
-        JSON_AGG(
-          JSON_BUILD_OBJECT(
-            'plant_id', p.id,
-            'plant_name', p.plant_name,
-            'photo', p.photo,
-            'owner_id', p.user_id,
-            'distance', withinThirty.distance
-            )
-          ORDER BY
-            withinThirty.distance
-          ) distanceArr
-      FROM
-        plants p
+            p.id = t.plant_target_id
+          AND
+            p.deleted = false
+          INNER JOIN
+            users u
+          ON
+            u.id = p.id
+          ) targetTable
+      ON targetTable.id = trades.id
       INNER JOIN
         (
-          SELECT
-            u.id,
-            ST_Distance(u.geolocation, wr.geolocation) distance
-          FROM
-            users u,
-          LATERAL
-            (
-              SELECT
-                id,
-                geolocation
-              FROM
-                users
-              WHERE
-                users.id = $1
-              ) as wr
-          WHERE
-            u.id != wr.id
-          AND
-            ST_Distance(u.geolocation, wr.geolocation) > 32000
-          AND
-            ST_Distance(u.geolocation, wr.geolocation) < 48000
-          ) withinThirty
-      ON
-        p.user_id = withinThirty.id
-      WHERE
-        p.deleted = false) withinThirty on withinThirty.user_id = withinTwenty.user_id
-  INNER JOIN
-    (
-      SELECT
-        $1 user_id,
-        JSON_AGG(
-          JSON_BUILD_OBJECT(
+          SELECT t.id,
+          JSON_BUILD_OBJECT
+          (
             'plant_id', p.id,
-            'plant_name', p.plant_name,
             'photo', p.photo,
             'owner_id', p.user_id,
-            'distance', withinForty.distance
-            )
-          ORDER BY
-          withinForty.distance
-          ) distanceArr
-      FROM
-        plants p
-      INNER JOIN
-        (
-          SELECT
-            u.id,
-            ST_Distance(u.geolocation, wr.geolocation) distance
+            'username', u.username
+          ) plantObj
           FROM
-            users u,
-          LATERAL
-            (
-              SELECT
-                id,
-                geolocation
-              FROM
-                users
-              WHERE
-                users.id = $1
-              ) as wr
-          WHERE
-            u.id != wr.id
+            trades t
+          INNER JOIN
+            plants p
+          ON
+            p.user_id = user_offer_id
           AND
-            ST_Distance(u.geolocation, wr.geolocation) > 48000
+            p.id = t.plant_offer_id
           AND
-            ST_Distance(u.geolocation, wr.geolocation) < 64000
-          ) withinForty
+            p.deleted = false
+          INNER JOIN
+            users u
+          ON
+            u.id = p.id
+        ) offerTable
       ON
-        p.user_id = withinForty.id
+        offerTable.id = targetTable.id
       WHERE
-        p.deleted = false) withinForty on withinForty.user_id = withinTwenty.user_id
-  INNER JOIN
+        trades.user_target_id = $1
+      ORDER BY
+        trades.created_at DESC;`,
+
+  getFavoritesQuery: `
+    SELECT
+      f.id favorites_id,
+      p.id plant_id,
+      p.photo,
+      p.user_id owner_id,
+      p.created_at
+    FROM
+      plants p
+    INNER JOIN
+      favorites f
+    ON
+      f.plant_id = p.id
+    WHERE
+      p.deleted = false
+    AND
+      f.user_id = $1
+    AND
+      f.deleted = false;`,
+
+  addUserQuery: `
+  WITH
+    coords
+  AS
     (
       SELECT
-        $1 user_id,
-        JSON_AGG(
-          JSON_BUILD_OBJECT(
-            'plant_id', p.id,
-            'plant_name', p.plant_name,
-            'photo', p.photo,
-            'owner_id', p.user_id,
-            'distance', withinFifty.distance
-            )
-          ORDER BY
-          withinFifty.distance
-          ) distanceArr
+        *
       FROM
-        plants p
-      INNER JOIN
-        (
-          SELECT
-            u.id,
-            ST_Distance(u.geolocation, wr.geolocation) distance
-          FROM
-            users u,
-          LATERAL
-            (
-              SELECT
-                id,
-                geolocation
-              FROM
-                users
-              WHERE
-                users.id = $1
-              ) as wr
-          WHERE
-            u.id != wr.id
-          AND
-            ST_Distance(u.geolocation, wr.geolocation) > 64000
-          AND
-            ST_Distance(u.geolocation, wr.geolocation) < 80000
-          ) withinFifty
-      ON
-        p.user_id = withinFifty.id
+        zips
       WHERE
-        p.deleted = false) withinFifty on withinFifty.user_id = withinTwenty.user_id`,
+        zip = $4
+    )
+  INSERT INTO
+    users
+    (
+      username,
+      session_id,
+      profile_pic,
+      zip,
+      longitude,
+      latitude,
+      geolocation
+    )
+  VALUES
+    (
+      $1,
+      $2,
+      $3,
+      $4,
+      (SELECT longitude FROM coords),
+      (SELECT latitude FROM coords),
+      ST_SetSRID(ST_MakePoint(
+        (SELECT longitude FROM coords),
+        (SELECT latitude FROM coords)), 4326)
+    )
+  RETURNING id;`,
 };

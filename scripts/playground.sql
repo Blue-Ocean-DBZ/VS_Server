@@ -571,3 +571,58 @@ ON
   offerTable.id = targetTable.id
 ORDER BY
 trades.created_at DESC;
+
+
+
+
+
+
+
+
+SELECT
+  t.pending,
+  withinTwenty.username owner_name,
+  p.id,
+  p.plant_name,
+  p.photo,
+  p.user_id,
+  withinTwenty.distance
+FROM
+  plants p
+INNER JOIN
+  (
+    SELECT
+      u.username,
+      u.id,
+      ST_Distance(u.geolocation, distanceTable.geolocation) distance
+    FROM
+      users u,
+    LATERAL
+      (
+        SELECT
+          id,
+          geolocation
+        FROM
+          users
+        WHERE
+          users.id = 1
+      )
+    AS
+      distanceTable
+    WHERE
+      u.id != distanceTable.id
+    AND
+      ST_DWithin(
+        u.geolocation,
+        distanceTable.geolocation,
+        240000
+      )
+    ) withinTwenty
+    ON
+      p.user_id = withinTwenty.id
+LEFT JOIN trades t on t.plant_target_id = p.id
+WHERE
+  p.deleted = false
+ORDER BY
+  distance
+LIMIT 100

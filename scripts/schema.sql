@@ -10,6 +10,9 @@ CREATE TABLE users (
   geolocation GEOGRAPHY(point) NOT NULL
 );
 
+CREATE INDEX users_geolocation_idx ON "users"(geolocation);
+
+
 CREATE TABLE plants (
   id SERIAL PRIMARY KEY,
   plant_name VARCHAR NOT NULL,
@@ -47,7 +50,6 @@ CREATE TABLE messages (
   CONSTRAINT fk_user_id
   FOREIGN KEY(user_id)
   REFERENCES "users"(id),
-  initiated_request BOOLEAN NOT NULL,
   trade_id INT,
   CONSTRAINT fk_trade_id
   FOREIGN KEY(trade_id)
