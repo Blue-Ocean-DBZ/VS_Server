@@ -50,36 +50,41 @@ const favorites_table = `CREATE TABLE favorites (\
 
 const messages_table = `CREATE TABLE messages ( \
   id SERIAL PRIMARY KEY, \
-  user_id_one INT, \
-  CONSTRAINT fk_user_one \
-  FOREIGN KEY(user_id_one) \
+  trade_id INT,
+  CONSTRAINT fk_trade_id
+  FOREIGN KEY(trade_id)
+  REFERENCES "trades"(id),
+  user_id INT, \
+  CONSTRAINT fk_user_id \
+  FOREIGN KEY(user_id) \
   REFERENCES "users"(id), \
-  user_id_two INT, \
-  CONSTRAINT fk_user_two \
-  FOREIGN KEY(user_id_two) \
-  REFERENCES "users"(id), \
+  initiated_request BOOLEAN NOT NULL,
   content VARCHAR NOT NULL, \
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP \
 );`;
 
-const trades_table = `CREATE TABLE trades ( \
-  id SERIAL PRIMARY KEY, \
-  pending BOOLEAN DEFAULT true, \
-  accepted BOOLEAN DEFAULT NULL, \
-  shown_to_user BOOLEAN DEFAULT false, \
-  user_offer_id INT, \
-  CONSTRAINT fk_user_offer \
-  FOREIGN KEY(user_offer_id) \
-  REFERENCES "users"(id), \
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, \
-  message_id INT, \
-  CONSTRAINT fk_message \
-  FOREIGN KEY(message_id) \
-  REFERENCES "messages"(id), \
-  user_target_id INT, \
-  CONSTRAINT fk_user_target \
-  FOREIGN KEY(user_target_id) \
-  REFERENCES "users"(id) \
+const trades_table = `CREATE TABLE trades (
+  id SERIAL PRIMARY KEY,
+  pending BOOLEAN DEFAULT true,
+  accepted BOOLEAN DEFAULT NULL,
+  shown_to_user BOOLEAN DEFAULT false,
+  user_offer_id INT,
+  CONSTRAINT fk_user_offer
+  FOREIGN KEY(user_offer_id)
+  REFERENCES "users"(id),
+  plant_offer_id INT,
+  CONSTRAINT fk_plant_offer
+  FOREIGN KEY(plant_offer_id)
+  REFERENCES "plants"(id),
+  user_target_id INT,
+  CONSTRAINT fk_user_target
+  FOREIGN KEY(user_target_id)
+  REFERENCES "users"(id),
+  plant_target_id INT,
+  CONSTRAINT fk_plant_target
+  FOREIGN KEY(plant_target_id)
+  REFERENCES "plants"(id),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`;
 
 const trade_components_table = `CREATE TABLE trade_components ( \
@@ -113,8 +118,7 @@ CSV HEADER;`;
 const zip_idx = `CREATE INDEX zip_idx ON "zips"(zip);`;
 const plant_idx = `CREATE INDEX plants_user_id_idx ON "plants"(user_id);`;
 const favorites_idx = `CREATE INDEX favorites_user_id_idx ON "favorites"(user_id);`;
-const msg_idx_one = `CREATE INDEX messages_user_id_one_idx ON "messages"(user_id_one);`;
-const msg_idx_two = `CREATE INDEX messages_user_id_two_idx ON "messages"(user_id_two);`;
+const msg_idx = `CREATE INDEX messages_user_id_idx ON "messages"(user_id);`;
 const trade_idx_one = `CREATE INDEX trades_user_offer_id_idx ON "trades"(user_offer_id);`;
 const trade_idx_two = `CREATE INDEX trades_user_target_id_idx ON "trades"(user_target_id);`;
 const trade_components_idx = `CREATE INDEX trade_components_user_id_idx ON "trade_components"(user_id);`;
@@ -149,15 +153,6 @@ client
     return client.query(favorites_idx);
   })
   .then(() => {
-    return client.query(messages_table);
-  })
-  .then(() => {
-    return client.query(msg_idx_one);
-  })
-  .then(() => {
-    return client.query(msg_idx_two);
-  })
-  .then(() => {
     return client.query(trades_table);
   })
   .then(() => {
@@ -165,6 +160,12 @@ client
   })
   .then(() => {
     return client.query(trade_idx_two);
+  })
+  .then(() => {
+    return client.query(messages_table);
+  })
+  .then(() => {
+    return client.query(msg_idx);
   })
   .then(() => {
     return client.query(trade_components_table);

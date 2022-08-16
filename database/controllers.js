@@ -98,9 +98,71 @@ module.exports = {
 
   getTrades: function (req, res) {
     return db
-      .query(``)
-      .then(() => {
-        res.send();
+      .query(
+        `SELECT JSON_BUILD_OBJECT(
+        'trade_id', trades.id,
+        'target', targetTable.plantObj,
+        'offer', offerTable.plantObj,
+        'created_at', trades.created_at,
+        'pending', trades.pending,
+        'accepted', trades.accepted,
+        'shown_to_user', trades.shown_to_user
+        ) tradesObj
+        FROM
+          trades
+        INNER JOIN
+          (
+            SELECT
+              t.id,
+              JSON_BUILD_OBJECT
+              (
+                'plant_id', p.id,
+                'photo', p.photo,
+                'owner_id', p.user_id
+              ) plantObj
+            FROM
+              trades t
+            INNER JOIN
+              plants p
+            ON
+              p.user_id = user_target_id
+            AND
+              p.id = t.plant_target_id
+            AND
+              p.deleted = false
+            ) targetTable
+        ON targetTable.id = trades.id
+        INNER JOIN
+          (
+            SELECT t.id,
+            JSON_BUILD_OBJECT
+            (
+              'plant_id', p.id,
+              'photo', p.photo,
+              'owner_id', p.user_id
+            ) plantObj
+            FROM
+              trades t
+            INNER JOIN
+              plants p
+            ON
+              p.user_id = user_offer_id
+            AND
+              p.id = t.plant_offer_id
+            AND
+              p.deleted = false
+          ) offerTable
+        ON
+          offerTable.id = targetTable.id
+        WHERE
+          trades.user_target_id = $1
+        ORDER BY
+        trades.created_at DESC;`,
+        [req.query.user_id]
+      )
+      .then((response) => {
+        console.log(response);
+        res.send(response.rows);
       })
       .catch((err) => {
         console.log(err);
@@ -108,8 +170,24 @@ module.exports = {
       });
   },
 
-  requestTrade: function () {
-    return;
+  requestTrade: function (req, res) {
+    return db
+      .queryAsync(
+        `INSERT INTO trades (user_offer_id, plant_offer_id, user_target_id, plant_target_id) VALUES ($1, $2, $3, $4) RETURNING id`,
+        [
+          req.body.user_offer_id,
+          req.body.plant_offer_id,
+          req.body.user_target_id,
+          req.body.plant_target_id,
+        ]
+      )
+      .then(() => {
+        res.status(201).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   handleTrade: function (req, res) {
