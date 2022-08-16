@@ -488,3 +488,86 @@ select * from trades t where t.user_target_id = 1 or t.user_offer_id = 1;
 
 
 select * from users where id > 1000;
+
+
+
+
+-- select t.id, t.pending, t.accepted, t.shown_to_user, t.user_offer_id, offerTable.plantObj, t.user_target_id, targetTable.plantObj target_plant, t.created_at from trades t inner join
+-- ( select t.id trade_id, JSON_BUILD_OBJECT('plant_id',p.id,'plant_name',p.plant_name,'photo',p.photo,'owner_id',p.user_id) plantObj from plants p inner join
+-- trades t on p.id = t.user_target_id where t.id = 4 ) targetTable on targetTable.trade_id = t.id
+-- inner join
+-- ( select t.id trade_id, JSON_BUILD_OBJECT('plant_id',p.id,'plant_name',p.plant_name,'photo',p.photo,'owner_id',p.user_id) plantObj from plants p inner join
+-- trades t on p.id = t.user_offer_id where t.id = 4 ) offerTable on offerTable.trade_id = t.id
+-- where t.id = 4;
+
+
+
+
+select JSON_BUILD_OBJECT('trade_id',trades.id,'target',targetTable.plantObj,'offer',offerTable.plantObj) from trades inner join
+(select t.id, JSON_BUILD_OBJECT('id',p.id,'photo',p.photo,'owner_id',p.user_id) plantObj from trades t inner join plants p
+on p.user_id = user_target_id and p.id = t.plant_target_id and p.deleted = false) targetTable
+on targetTable.id = trades.id
+inner join
+(select t.id, JSON_BUILD_OBJECT('id',p.id,'photo',p.photo,'owner_id',p.user_id) plantObj from trades t inner join plants p
+on p.user_id = user_offer_id and p.id = t.plant_offer_id and p.deleted = false) offerTable
+on offerTable.id = targetTable.id
+
+
+
+SELECT JSON_BUILD_OBJECT(
+'trade_id', trades.id,
+'target', targetTable.plantObj,
+'offer', offerTable.plantObj,
+'created_at', trades.created_at,
+'pending', trades.pending,
+'accepted', trades.accepted,
+'shown_to_user', trades.shown_to_user
+) tradesObj
+FROM
+  trades
+INNER JOIN
+  (
+    SELECT
+      t.id,
+      JSON_BUILD_OBJECT
+      (
+        'plant_id', p.id,
+        'photo', p.photo,
+        'owner_id', p.user_id
+      ) plantObj
+    FROM
+      trades t
+    INNER JOIN
+      plants p
+    ON
+      p.user_id = user_target_id
+    AND
+      p.id = t.plant_target_id
+    AND
+      p.deleted = false
+    ) targetTable
+ON targetTable.id = trades.id
+INNER JOIN
+  (
+    SELECT t.id,
+    JSON_BUILD_OBJECT
+    (
+      'plant_id', p.id,
+      'photo', p.photo,
+      'owner_id', p.user_id
+    ) plantObj
+    FROM
+      trades t
+    INNER JOIN
+      plants p
+    ON
+      p.user_id = user_offer_id
+    AND
+      p.id = t.plant_offer_id
+    AND
+      p.deleted = false
+  ) offerTable
+ON
+  offerTable.id = targetTable.id
+ORDER BY
+trades.created_at DESC;

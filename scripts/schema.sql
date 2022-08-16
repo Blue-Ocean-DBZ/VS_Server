@@ -43,14 +43,15 @@ CREATE INDEX favorites_user_id_idx ON "favorites"(user_id)
 
 CREATE TABLE messages (
   id SERIAL PRIMARY KEY,
-  user_id_one INT,
-  CONSTRAINT fk_user_one
-  FOREIGN KEY(user_id_one)
+  user_id INT,
+  CONSTRAINT fk_user_id
+  FOREIGN KEY(user_id)
   REFERENCES "users"(id),
-  user_id_two INT,
-  CONSTRAINT fk_user_two
-  FOREIGN KEY(user_id_two)
-  REFERENCES "users"(id),
+  initiated_request BOOLEAN NOT NULL,
+  trade_id INT,
+  CONSTRAINT fk_trade_id
+  FOREIGN KEY(trade_id)
+  REFERENCES "trades"(id),
   content VARCHAR NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -69,11 +70,15 @@ CREATE TABLE trades (
   CONSTRAINT fk_user_offer
   FOREIGN KEY(user_offer_id)
   REFERENCES "users"(id),
+  plant_offer_id INT,
+  CONSTRAINT fk_plant_offer
+  FOREIGN KEY(plant_offer_id)
+  REFERENCES "plants"(id),
+  plant_target_id INT,
+  CONSTRAINT fk_plant_target
+  FOREIGN KEY(plant_target_id)
+  REFERENCES "plants"(id),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  message_id INT,
-  CONSTRAINT fk_message
-  FOREIGN KEY(message_id)
-  REFERENCES "messages"(id),
   user_target_id INT,
   CONSTRAINT fk_user_target
   FOREIGN KEY(user_target_id)
