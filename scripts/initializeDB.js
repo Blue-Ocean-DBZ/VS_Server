@@ -149,6 +149,7 @@ client
     return client.query(firebase_idx);
   })
   .then(() => {
+
     return client.query(plants_table);
   })
   .then(() => {
