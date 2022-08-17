@@ -82,8 +82,8 @@ const trades_table = `CREATE TABLE trades (
   CONSTRAINT fk_plant_target
   FOREIGN KEY(plant_target_id)
   REFERENCES "plants"(id),
-  shown_to_user_offer BOOLEAN DEFAULT false,
-  shown_to_user_target BOOLEAN DEFAULT false,
+  shown_to_user_offer BOOLEAN DEFAULT NULL,
+  shown_to_user_target BOOLEAN DEFAULT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`;
 
@@ -149,7 +149,6 @@ client
     return client.query(firebase_idx);
   })
   .then(() => {
-
     return client.query(plants_table);
   })
   .then(() => {
