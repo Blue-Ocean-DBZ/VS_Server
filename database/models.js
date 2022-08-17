@@ -146,4 +146,21 @@ module.exports = {
         (SELECT latitude FROM coords)), 4326)
     )
   RETURNING id;`,
+
+  requestTradeQuery: `
+    INSERT INTO
+      trades
+        (
+          user_offer_id,
+          plant_offer_id,
+          user_target_id,
+          plant_target_id
+        )
+      VALUES
+        (
+          (SELECT p.user_id FROM plants p WHERE p.id = $1),
+          $1,
+          (SELECT p.user_id FROM plants p WHERE p.id = $2),
+          $2
+        )`,
 };

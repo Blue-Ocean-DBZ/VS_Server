@@ -5,6 +5,7 @@ const findByLocationQuery = require("./models.js").findByLocationQuery;
 const getTradesQuery = require("./models.js").getTradesQuery;
 const getFavoritesQuery = require("./models.js").getFavoritesQuery;
 const addUserQuery = require("./models.js").addUserQuery;
+const requestTradeQuery = require("./models.js").requestTradeQuery;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -22,10 +23,10 @@ module.exports = {
       return db.queryAsync(
         `
         UPDATE users
-          SET profile_pic = $1, zip = $2
-        WHERE id = 1;
+          SET profile_pic = $2, zip = $3
+        WHERE id = $1;
         `,
-        [req.body.profile_pic, req.body.zip]
+        [req.body.user_id, req.body.profile_pic, req.body.zip]
       );
     } else if (req.body.firebase_id) {
       return db
@@ -108,15 +109,10 @@ module.exports = {
 
   requestTrade: function (req, res) {
     return db
-      .queryAsync(
-        `INSERT INTO trades (user_offer_id, plant_offer_id, user_target_id, plant_target_id) VALUES ($1, $2, $3, $4) RETURNING id`,
-        [
-          req.body.user_offer_id,
-          req.body.plant_offer_id,
-          req.body.user_target_id,
-          req.body.plant_target_id,
-        ]
-      )
+      .queryAsync(requestTradeQuery, [
+        req.body.plant_offer_id,
+        req.body.plant_target_id,
+      ])
       .then(() => {
         res.status(201).send();
       })
@@ -238,6 +234,3 @@ module.exports = {
       });
   },
 };
-
-// `INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation) \
-//        VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`

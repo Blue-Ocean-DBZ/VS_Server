@@ -54,7 +54,34 @@ let createTrade = async function (
 //   "plant_target_id": 256
 // }
 
-createTrade(1, 2, 1, 2);
+// createTrade(1, 2, 1, 2);
+
+let createMessage = async function (req, res) {
+  const client = await pool.connect();
+  try {
+    await client.queryAsync("BEGIN");
+    await Promise.all([
+      client.queryAsync(
+        `INSERT INTO messages
+          (user_id, trade_id, content)
+        VALUES
+          ($1, $2, $3)`,
+        [req.body.user_id, req.body.trade_id, req.body.content]
+      ),
+      client.query(`
+        UPDATE trades
+          set shown_to_user = false
+
+      `),
+    ]);
+    res.status(201).send();
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+  } finally {
+    client.release();
+  }
+};
 
 let createMessage = async function (req, res) {
   const client = await pool.connect();
