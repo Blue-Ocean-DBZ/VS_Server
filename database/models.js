@@ -61,13 +61,21 @@ module.exports = {
 
   getTradesQuery: `
   SELECT
-    t.id,
+    t.id trade_id,
     t.pending,
     t.accepted,
-    t.shown_to_user,
+    t.shown_to_user_offer,
+    t.shown_to_user_target,
     t.created_at,
-    JSON_BUILD_OBJECT('plant_id',p.id,'photo',p.photo,'owner_id',p.user_id) plant_target,
-    JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id) plant_offer
+    JSON_BUILD_OBJECT
+    (
+      'plant_id',p.id,
+      'photo',p.photo,
+      'owner_id',p.user_id,
+      'plant_name', p.plant_name,
+      'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
+    ) plant_target,
+    JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id,'plant_name',p.plant_name,'username',(SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )) plant_offer
   FROM
     (
       SELECT
@@ -108,7 +116,9 @@ module.exports = {
     AND
       f.user_id = $1
     AND
-      f.deleted = false;`,
+      f.deleted = false
+    ORDER BY
+      f.created_at DESC;`,
 
   addUserQuery: `
   WITH
