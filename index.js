@@ -27,6 +27,7 @@ app.put("/trades/shown", controllers.showToUser);
 app.get("/userId", controllers.getUserInfo);
 
 app.post("/user", controllers.addUser);
+app.put("/user", controllers.editUser);
 // app.put("/user", controllers.editUser);
 
 app.listen(process.env.PORT);
