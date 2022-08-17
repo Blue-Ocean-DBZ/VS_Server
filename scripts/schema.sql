@@ -37,6 +37,7 @@ CREATE TABLE favorites (
   REFERENCES "users"(id),
   deleted BOOLEAN DEFAULT false,
   plant_id INT,
+  distance DOUBLE PRECISION,
   CONSTRAINT fk_plant_id
   FOREIGN KEY(plant_id)
   REFERENCES "plants"(id),

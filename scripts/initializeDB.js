@@ -40,6 +40,7 @@ const favorites_table = `CREATE TABLE favorites (\
   CONSTRAINT fk_user \
   FOREIGN KEY(user_id) \
   REFERENCES "users"(id), \
+  distance DOUBLE PRECISION, \
   plant_id INT, \
   CONSTRAINT fk_plant_id \
   FOREIGN KEY(plant_id) \
