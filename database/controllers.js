@@ -51,7 +51,7 @@ module.exports = {
   getMyPlants: function (req, res) {
     return db
       .queryAsync(
-        `SELECT * FROM plants p WHERE user_id = $1 AND p.deleted = false`,
+        `SELECT p.id plant_id, p.photo, p.created_at FROM plants p WHERE user_id = $1 AND p.deleted = false ORDER BY p.created_at DESC;`,
         [req.query.user_id]
       )
       .then((response) => {
