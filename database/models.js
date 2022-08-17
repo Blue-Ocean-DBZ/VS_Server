@@ -1,6 +1,7 @@
 module.exports = {
   findByLocationQuery: `
     SELECT
+      f.id favorite,
       t.pending,
       withinTwenty.username,
       p.id plant_id,
@@ -43,7 +44,14 @@ module.exports = {
         ) withinTwenty
         ON
           p.user_id = withinTwenty.id
-    LEFT JOIN trades t on t.plant_target_id = p.id
+    LEFT JOIN
+      trades t on t.plant_target_id = p.id
+    LEFT JOIN
+      favorites f on f.user_id = $1
+    AND
+      f.plant_id = p.id
+    AND
+      f.deleted = false
     WHERE
       p.deleted = false
     ORDER BY
@@ -52,7 +60,7 @@ module.exports = {
 
   getTradesQuery: `
       SELECT
-        trades.id,
+        trades.id trade_id,
         targetTable.plantObj target_plant,
         offerTable.plantObj offer_plant,
         trades.created_at,
@@ -117,6 +125,8 @@ module.exports = {
         offerTable.id = targetTable.id
       WHERE
         trades.user_target_id = $1
+      OR
+        trades.user_offer_id = $1
       ORDER BY
         trades.created_at DESC;`,
 

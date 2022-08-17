@@ -2,7 +2,7 @@
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   username VARCHAR NOT NULL,
-  session_id VARCHAR NOT NULL,
+  firebase_id VARCHAR UNIQUE NOT NULL,
   profile_pic VARCHAR DEFAULT NULL,
   zip VARCHAR NOT NULL,
   longitude DECIMAL NOT NULL,
@@ -11,6 +11,7 @@ CREATE TABLE users (
 );
 
 CREATE INDEX users_geolocation_idx ON "users"(geolocation);
+CREATE INDEX firebase_id ON "users"(firebase_id);
 
 
 CREATE TABLE plants (
@@ -67,7 +68,6 @@ CREATE TABLE trades (
   id SERIAL PRIMARY KEY,
   pending BOOLEAN DEFAULT true,
   accepted BOOLEAN DEFAULT NULL,
-  shown_to_user BOOLEAN DEFAULT false,
   user_offer_id INT,
   CONSTRAINT fk_user_offer
   FOREIGN KEY(user_offer_id)
@@ -82,6 +82,8 @@ CREATE TABLE trades (
   REFERENCES "plants"(id),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   user_target_id INT,
+  shown_to_user_offer BOOLEAN DEFAULT false,
+  shown_to_user_target BOOLEAN DEFAULT false,
   CONSTRAINT fk_user_target
   FOREIGN KEY(user_target_id)
   REFERENCES "users"(id)
