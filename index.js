@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 
 app.get("/all", controllers.findByLocation);
-app.get("/userId", controllers.getUserId);
+// app.get("/userId", controllers.getUserId);
 app.get("/myPlants", controllers.getMyPlants);
 
 app.get("/favorites", controllers.getFavorites);
@@ -24,6 +24,7 @@ app.post("/trades", controllers.requestTrade);
 app.put("/trades", controllers.handleTrade);
 
 app.post("/user", controllers.addUser);
+app.put("/user", controllers.editUser);
 // app.put("/user", controllers.editUser);
 
 app.listen(process.env.PORT);
