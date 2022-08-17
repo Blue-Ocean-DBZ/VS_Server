@@ -50,6 +50,16 @@ let populateData = async function () {
       );
     })
   );
+  await db.query(`SELECT
+      SETVAL(
+        (SELECT PG_GET_SERIAL_SEQUENCE('"users"', 'id')),
+      (SELECT (MAX("id") + 1) FROM "users"),
+      FALSE);`);
+  await db.query(`SELECT
+  SETVAL(
+    (SELECT PG_GET_SERIAL_SEQUENCE('"plants"', 'id')),
+  (SELECT (MAX("id") + 1) FROM "plants"),
+  FALSE);`);
 };
 
 populateData();

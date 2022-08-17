@@ -7,6 +7,8 @@ const getFavoritesQuery = require("./models.js").getFavoritesQuery;
 const addUserQuery = require("./models.js").addUserQuery;
 const requestTradeQuery = require("./models.js").requestTradeQuery;
 const addToFavoritesQuery = require("./models.js").addToFavoritesQuery;
+const editUserQuery = require("./models.js").editUserQuery;
+
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -21,38 +23,57 @@ const db = Promise.promisifyAll(pool, { multiArgs: true });
 //valid zip on update
 module.exports = {
   addUser: function (req, res) {
-    if (req.body.user_id) {
-      return db.queryAsync(
-        `
-        UPDATE users
-          SET profile_pic = $2, zip = $3
-        WHERE id = $1;
-        `,
-        [req.body.user_id, req.body.profile_pic, req.body.zip]
-      );
-    } else if (req.body.firebase_id) {
-      return db
-        .queryAsync(addUserQuery, [
-          req.body.username,
-          req.body.firebase_id,
-          req.body.profile_pic,
-          req.body.zip,
-        ])
-        .then((response) => {
-          console.log(response[0].rows[0].id);
-          res.status(201).send(response[0].rows[0].id.toString());
-        })
-        .catch((err) => {
-          console.log(err);
-          res.status(500).send();
-        });
-    }
+    return db
+      .queryAsync(addUserQuery, [
+        req.body.username,
+        req.body.firebase_id,
+        req.body.profile_pic,
+        req.body.zip,
+      ])
+      .then((response) => {
+        console.log(response[0].rows[0].id);
+        res.status(201).send(response[0].rows[0].id.toString());
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
+  },
+
+  editUser: function (req, res) {
+    return db
+      .queryAsync(editUserQuery, [req.body.user_id])
+      .then(() => {
+        res.status(204).send();
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   getMyPlants: function (req, res) {
     return db
       .queryAsync(
-        `SELECT p.id plant_id, p.photo, p.created_at FROM plants p WHERE user_id = $1 AND p.deleted = false ORDER BY p.created_at DESC;`,
+        `SELECT
+          p.plant_name,
+          p.id plant_id,
+          p.photo,
+          p.created_at,
+          u.zip,
+          u.id user_id
+        FROM
+          plants p
+        INNER JOIN
+          users u
+        ON
+          u.id = p.user_id
+        WHERE
+          user_id = $1
+        AND
+          p.deleted = false
+        ORDER BY
+          p.created_at DESC;`,
         [req.query.user_id]
       )
       .then((response) => {
@@ -62,10 +83,6 @@ module.exports = {
         console.log(err);
         res.status(500).send();
       });
-  },
-
-  editUser: function () {
-    return;
   },
 
   addPlant: function (req, res) {
@@ -95,6 +112,7 @@ module.exports = {
         res.status(500).send();
       });
   },
+
   removeFromFavorites: function (req, res) {
     return db
       .queryAsync(`UPDATE favorites SET deleted = true WHERE id = $1`, [
@@ -221,9 +239,9 @@ module.exports = {
       });
   },
 
-  getUserId: function (req, res) {
+  getUserInfo: function (req, res) {
     return db
-      .queryAsync(`SELECT id FROM users WHERE firebase_id = $1`, [
+      .queryAsync(`SELECT * FROM users WHERE firebase_id = $1`, [
         req.query.firebase_id,
       ])
       .then((response) => {

@@ -201,4 +201,18 @@ module.exports = {
   )`,
 
   createMessageQuery: ``,
+
+  editUser: `
+  WITH
+    coords
+  AS
+    (SELECT longitude, latitude FROM zips where zip = $2)
+  UPDATE
+    users
+  SET
+    zip = $2,
+    profile_pic = $3,
+    longitude = (select longitude from coords),
+    latitude = (select latitude from coords)
+  WHERE id = $1`,
 };

@@ -638,3 +638,8 @@ currentUser as (select 1 here, geolocation from users u where u.id = 2)
 insert into favorites (user_id, plant_id, distance) values (2, 1,
 (select ST_Distance(coords.geolocation, currentUser.geolocation) from coords inner join currentUser on currentUser.here = coords.there)
 )
+
+
+
+WITH coords AS (SELECT longitude, latitude FROM zips where zip = 95442)
+
