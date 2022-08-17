@@ -173,4 +173,6 @@ module.exports = {
           (SELECT p.user_id FROM plants p WHERE p.id = $2),
           $2
         )`,
+
+  createMessageQuery: ``,
 };

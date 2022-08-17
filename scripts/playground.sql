@@ -626,3 +626,7 @@ WHERE
 ORDER BY
   distance
 LIMIT 100
+
+
+
+WITH coords as (SELECT * FROM zips where zip = $1)

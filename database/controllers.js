@@ -17,6 +17,7 @@ const pool = new Pool({
 
 const db = Promise.promisifyAll(pool, { multiArgs: true });
 
+//valid zip on update
 module.exports = {
   addUser: function (req, res) {
     if (req.body.user_id) {
@@ -45,6 +46,21 @@ module.exports = {
           res.status(500).send();
         });
     }
+  },
+
+  getMyPlants: function (req, res) {
+    return db
+      .queryAsync(
+        `SELECT * FROM plants p WHERE user_id = $1 AND p.deleted = false`,
+        [req.query.user_id]
+      )
+      .then((response) => {
+        res.status(200).send(response[0].rows);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
   },
 
   editUser: function () {
