@@ -6,6 +6,7 @@ const getTradesQuery = require("./models.js").getTradesQuery;
 const getFavoritesQuery = require("./models.js").getFavoritesQuery;
 const addUserQuery = require("./models.js").addUserQuery;
 const requestTradeQuery = require("./models.js").requestTradeQuery;
+const addToFavoritesQuery = require("./models.js").addToFavoritesQuery;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -85,12 +86,9 @@ module.exports = {
 
   addToFavorites: function (req, res) {
     return db
-      .queryAsync(
-        `INSERT INTO favorites (user_id, plant_id) VALUES ($1, $2) RETURNING id`,
-        [req.body.user_id, req.body.plant_id]
-      )
-      .then((response) => {
-        res.status(201).send(response[0].rows[0].id.toString());
+      .queryAsync(addToFavoritesQuery, [req.body.user_id, req.body.plant_id])
+      .then(() => {
+        res.status(201).send();
       })
       .catch((err) => {
         console.log(err);
