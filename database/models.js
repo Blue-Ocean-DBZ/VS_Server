@@ -174,5 +174,30 @@ module.exports = {
           $2
         )`,
 
+  addToFavoritesQuery: `
+  WITH
+    coords
+  AS
+    (select 1 there, p.id, geolocation from plants p inner join users u on p.user_id = u.id where p.id = $2),
+    currentUser
+  AS
+    (select 1 here, geolocation from users u where u.id = $1)
+  INSERT INTO
+    favorites
+  (user_id, plant_id, distance)
+    VALUES
+    ($1, $2,
+    (
+      SELECT ST_Distance(
+        coords.geolocation,
+        currentUser.geolocation)
+      FROM
+        coords
+      INNER JOIN
+        currentUser
+      ON
+        currentUser.here = coords.there)
+  )`,
+
   createMessageQuery: ``,
 };
