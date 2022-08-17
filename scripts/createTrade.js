@@ -54,7 +54,7 @@ let createTrade = async function (
 //   "plant_target_id": 256
 // }
 
-createTrade(1, 2, 1, 2);
+// createTrade(1, 2, 1, 2);
 
 let createMessage = async function (req, res) {
   const client = await pool.connect();

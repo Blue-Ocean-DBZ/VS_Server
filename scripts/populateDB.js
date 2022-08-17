@@ -21,15 +21,16 @@ let populateData = async function () {
   await Promise.all(
     arr.map(function (e, i) {
       return db.queryAsync(
-        `INSERT INTO users (username, session_id, profile_pic, zip, longitude, latitude, geolocation) \
-         VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`,
+        `INSERT INTO users (id, username, firebase_id, profile_pic, zip, longitude, latitude, geolocation) \
+         VALUES ($7, $1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($5, $6), 4326) )`,
         [
-          "user" + i,
+          "user" + (i + 1),
           Math.random(),
           faker.image.image(),
           faker.address.zipCode(),
           parseFloat(faker.address.longitude(124, 120, 4)),
           parseFloat(faker.address.latitude(40, 35, 4)),
+          i + 1,
         ]
       );
     })
@@ -38,9 +39,10 @@ let populateData = async function () {
   await Promise.all(
     arr2.map(function (e, i) {
       return db.queryAsync(
-        `INSERT INTO plants (plant_name, photo, user_id) \
-      VALUES ($1, $2, $3)`,
+        `INSERT INTO plants (id, plant_name, photo, user_id) \
+      VALUES ($1, $2, $3, $4)`,
         [
+          i + 1,
           faker.name.lastName(),
           plantPhotos[Math.floor(Math.random() * 20)],
           (i % 250) + 1,
