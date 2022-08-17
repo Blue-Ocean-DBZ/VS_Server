@@ -136,7 +136,7 @@ module.exports = {
     users
     (
       username,
-      session_id,
+      firebase_id,
       profile_pic,
       zip,
       longitude,

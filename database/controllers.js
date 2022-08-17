@@ -225,7 +225,7 @@ module.exports = {
 
   getUserId: function (req, res) {
     return db
-      .queryAsync(`SELECT id FROM users WHERE session_id = $1`, [
+      .queryAsync(`SELECT id FROM users WHERE firebase_id = $1`, [
         req.query.firebase_id,
       ])
       .then((response) => {
