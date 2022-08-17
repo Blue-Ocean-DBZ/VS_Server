@@ -8,6 +8,7 @@ app.use(express.json());
 app.get("/all", controllers.findByLocation);
 app.get("/userId", controllers.getUserId);
 
+
 app.get("/favorites", controllers.getFavorites);
 app.post("/favorites", controllers.addToFavorites);
 app.delete("/favorites", controllers.removeFromFavorites);

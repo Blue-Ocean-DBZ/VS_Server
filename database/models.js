@@ -52,6 +52,7 @@ module.exports = {
       f.plant_id = p.id
     AND
       f.deleted = false
+
     WHERE
       p.deleted = false
     ORDER BY

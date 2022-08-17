@@ -14,6 +14,7 @@ CREATE INDEX users_geolocation_idx ON "users"(geolocation);
 CREATE INDEX firebase_id ON "users"(firebase_id);
 
 
+
 CREATE TABLE plants (
   id SERIAL PRIMARY KEY,
   plant_name VARCHAR NOT NULL,
