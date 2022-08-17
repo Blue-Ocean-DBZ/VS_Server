@@ -18,22 +18,32 @@ const db = Promise.promisifyAll(pool, { multiArgs: true });
 
 module.exports = {
   addUser: function (req, res) {
-    console.log(req.body);
-    return db
-      .queryAsync(addUserQuery, [
-        req.body.username,
-        req.body.session_id,
-        req.body.profile_pic,
-        req.body.zip,
-      ])
-      .then((response) => {
-        console.log(response[0].rows[0].id);
-        res.status(201).send(response[0].rows[0].id.toString());
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).send();
-      });
+    if (req.body.user_id) {
+      return db.queryAsync(
+        `
+        UPDATE users
+          SET profile_pic = $1, zip = $2
+        WHERE id = 1;
+        `,
+        [req.body.profile_pic, req.body.zip]
+      );
+    } else if (req.body.firebase_id) {
+      return db
+        .queryAsync(addUserQuery, [
+          req.body.username,
+          req.body.firebase_id,
+          req.body.profile_pic,
+          req.body.zip,
+        ])
+        .then((response) => {
+          console.log(response[0].rows[0].id);
+          res.status(201).send(response[0].rows[0].id.toString());
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(500).send();
+        });
+    }
   },
 
   editUser: function () {
@@ -194,6 +204,21 @@ module.exports = {
       .queryAsync(getFavoritesQuery, [req.query.user_id])
       .then((response) => {
         res.status(200).send(response[0].rows);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).send();
+      });
+  },
+
+  getUserId: function (req, res) {
+    return db
+      .queryAsync(`SELECT id FROM users WHERE session_id = $1`, [
+        req.query.firebase_id,
+      ])
+      .then((response) => {
+        console.log(response[0].rows[0]);
+        res.status(200).send(response[0].rows[0].id.toString());
       })
       .catch((err) => {
         console.log(err);

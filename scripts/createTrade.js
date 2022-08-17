@@ -9,6 +9,8 @@ let pool = new Pool({
   database: process.env.DB_NAME,
 });
 
+const db = Promise.promisifyAll(pool, { multiArgs: true });
+
 // Transaction
 // Create Message?
 // Create 2x Trade Components;
@@ -53,6 +55,33 @@ let createTrade = async function (
 // }
 
 createTrade(1, 2, 1, 2);
+
+let createMessage = async function (req, res) {
+  const client = await pool.connect();
+  try {
+    await client.queryAsync("BEGIN");
+    await Promise.all([
+      client.queryAsync(
+        `INSERT INTO messages
+          (user_id, trade_id, content)
+        VALUES
+          ($1, $2, $3)`,
+        [req.body.user_id, req.body.trade_id, req.body.content]
+      ),
+      client.query(`
+        UPDATE trades
+          set shown_to_user = false
+
+      `),
+    ]);
+    res.status(201).send();
+  } catch (e) {
+    console.log(e);
+    res.status(500);
+  } finally {
+    client.release();
+  }
+};
 
 // addReview: async function (req, res) {
 //   const client = await pool.connect();

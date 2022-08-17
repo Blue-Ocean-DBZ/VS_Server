@@ -1,7 +1,7 @@
 const pg = require("pg");
 require("dotenv").config();
 const path = require("path");
-const zips_path = path.resolve("data/zip_code_database_latlong.csv");
+const zips_path = path.resolve("tmp/zip_code_database_latlong.csv");
 
 let client = new pg.Client({
   user: process.env.DB_USER,
@@ -14,7 +14,7 @@ let client = new pg.Client({
 const users_table = `CREATE TABLE users (\
   id SERIAL PRIMARY KEY, \
   username VARCHAR NOT NULL, \
-  session_id VARCHAR NOT NULL, \
+  firebase_id VARCHAR UNIQUE NOT NULL, \
   profile_pic VARCHAR DEFAULT NULL, \
   zip VARCHAR NOT NULL, \
   longitude DOUBLE PRECISION NOT NULL, \
@@ -66,7 +66,6 @@ const trades_table = `CREATE TABLE trades (
   id SERIAL PRIMARY KEY,
   pending BOOLEAN DEFAULT true,
   accepted BOOLEAN DEFAULT NULL,
-  shown_to_user BOOLEAN DEFAULT false,
   user_offer_id INT,
   CONSTRAINT fk_user_offer
   FOREIGN KEY(user_offer_id)
@@ -83,6 +82,8 @@ const trades_table = `CREATE TABLE trades (
   CONSTRAINT fk_plant_target
   FOREIGN KEY(plant_target_id)
   REFERENCES "plants"(id),
+  shown_to_user_offer BOOLEAN DEFAULT false,
+  shown_to_user_target BOOLEAN DEFAULT false,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`;
 
@@ -114,6 +115,7 @@ FROM '${zips_path}'
 DELIMITER ','
 CSV HEADER;`;
 
+const firebase_idx = `CREATE INDEX firebase_id ON "users"(firebase_id);`;
 const zip_idx = `CREATE INDEX zip_idx ON "zips"(zip);`;
 const plant_idx = `CREATE INDEX plants_user_id_idx ON "plants"(user_id);`;
 const favorites_idx = `CREATE INDEX favorites_user_id_idx ON "favorites"(user_id);`;
@@ -144,6 +146,10 @@ client
     return client.query(geo_idx);
   })
   .then(() => {
+    return client.query(firebase_idx);
+  })
+  .then(() => {
+
     return client.query(plants_table);
   })
   .then(() => {

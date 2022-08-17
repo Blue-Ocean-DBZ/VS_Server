@@ -1,6 +1,7 @@
 module.exports = {
   findByLocationQuery: `
     SELECT
+      f.id favorite,
       t.pending,
       withinTwenty.username,
       p.id plant_id,
@@ -43,7 +44,15 @@ module.exports = {
         ) withinTwenty
         ON
           p.user_id = withinTwenty.id
-    LEFT JOIN trades t on t.plant_target_id = p.id
+    LEFT JOIN
+      trades t on t.plant_target_id = p.id
+    LEFT JOIN
+      favorites f on f.user_id = $1
+    AND
+      f.plant_id = p.id
+    AND
+      f.deleted = false
+
     WHERE
       p.deleted = false
     ORDER BY
@@ -51,74 +60,35 @@ module.exports = {
     LIMIT 100;`,
 
   getTradesQuery: `
+  SELECT
+    t.id,
+    t.pending,
+    t.accepted,
+    t.shown_to_user,
+    t.created_at,
+    JSON_BUILD_OBJECT('plant_id',p.id,'photo',p.photo,'owner_id',p.user_id) plant_target,
+    JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id) plant_offer
+  FROM
+    (
       SELECT
-        trades.id,
-        targetTable.plantObj target_plant,
-        offerTable.plantObj offer_plant,
-        trades.created_at,
-        trades.pending,
-        trades.accepted,
-        trades.shown_to_user
+        *
       FROM
-        trades
-      INNER JOIN
-        (
-          SELECT
-            t.id,
-            JSON_BUILD_OBJECT
-            (
-              'plant_id', p.id,
-              'photo', p.photo,
-              'owner_id', p.user_id,
-              'username', u.username
-            ) plantObj
-          FROM
-            trades t
-          INNER JOIN
-            plants p
-          ON
-            p.user_id = user_target_id
-          AND
-            p.id = t.plant_target_id
-          AND
-            p.deleted = false
-          INNER JOIN
-            users u
-          ON
-            u.id = p.id
-          ) targetTable
-      ON targetTable.id = trades.id
-      INNER JOIN
-        (
-          SELECT t.id,
-          JSON_BUILD_OBJECT
-          (
-            'plant_id', p.id,
-            'photo', p.photo,
-            'owner_id', p.user_id,
-            'username', u.username
-          ) plantObj
-          FROM
-            trades t
-          INNER JOIN
-            plants p
-          ON
-            p.user_id = user_offer_id
-          AND
-            p.id = t.plant_offer_id
-          AND
-            p.deleted = false
-          INNER JOIN
-            users u
-          ON
-            u.id = p.id
-        ) offerTable
-      ON
-        offerTable.id = targetTable.id
+        trades t
       WHERE
-        trades.user_target_id = $1
-      ORDER BY
-        trades.created_at DESC;`,
+        t.user_target_id = $1
+      OR
+        t.user_offer_id = $1
+    ) t
+  INNER JOIN
+    plants p
+  ON
+    p.id = t.plant_target_id
+  INNER JOIN
+    plants p2
+  ON
+    p2.id = t.plant_offer_id
+  ORDER BY
+    created_at DESC`,
 
   getFavoritesQuery: `
     SELECT
