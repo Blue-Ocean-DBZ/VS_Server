@@ -101,6 +101,7 @@ module.exports = {
   getFavoritesQuery: `
     SELECT
       f.id favorites_id,
+      f.distance,
       p.id plant_id,
       p.photo,
       p.user_id owner_id,
