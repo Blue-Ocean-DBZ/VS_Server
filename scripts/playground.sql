@@ -642,3 +642,4 @@ insert into favorites (user_id, plant_id, distance) values (2, 1,
 
 
 WITH coords AS (SELECT longitude, latitude FROM zips where zip = 95442)
+

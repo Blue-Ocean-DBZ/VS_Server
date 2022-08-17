@@ -9,6 +9,7 @@ const requestTradeQuery = require("./models.js").requestTradeQuery;
 const addToFavoritesQuery = require("./models.js").addToFavoritesQuery;
 const editUserQuery = require("./models.js").editUserQuery;
 
+
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
