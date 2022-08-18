@@ -4,6 +4,7 @@
   "description": "Server for Vegetation Station iOS app",
   "main": "index.js",
   "scripts": {
+    "addZips": "node scripts/newZips.js",
     "populate": "node scripts/populateDB.js",
     "initialize": "node scripts/initializeDB.js",
     "start": "nodemon index.js",
