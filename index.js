@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 
 app.get("/all", controllers.findByLocation);
-// app.get("/userId", controllers.getUserId);
+app.get("/userId", controllers.getUserInfo);
 app.get("/myPlants", controllers.getMyPlants);
 
 app.get("/favorites", controllers.getFavorites);
@@ -22,6 +22,7 @@ app.post("/messages", controllers.postMessage);
 app.get("/trades", controllers.getTrades);
 app.post("/trades", controllers.requestTrade);
 app.put("/trades", controllers.handleTrade);
+app.put("/trades/shown", controllers.showToUser);
 
 app.post("/user", controllers.addUser);
 app.put("/user", controllers.editUser);

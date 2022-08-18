@@ -8,6 +8,11 @@ const addUserQuery = require("./models.js").addUserQuery;
 const requestTradeQuery = require("./models.js").requestTradeQuery;
 const addToFavoritesQuery = require("./models.js").addToFavoritesQuery;
 const editUserQuery = require("./models.js").editUserQuery;
+const updateQueryOne = require("./models.js").updateQueryOne;
+const updateQueryTwo = require("./models.js").updateQueryTwo;
+const createMessageQuery = require("./models.js").createMessageQuery;
+const updateQueryThree = require("./models.js").updateQueryThree;
+const updateQueryFour = require("./models.js").updateQueryFour;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -40,8 +45,14 @@ module.exports = {
   },
 
   editUser: function (req, res) {
+    console.log(req.body);
+    console.log(editUserQuery);
     return db
-      .queryAsync(editUserQuery, [req.body.user_id])
+      .queryAsync(editUserQuery, [
+        req.body.user_id,
+        req.body.zip,
+        req.body.profile_pic,
+      ])
       .then(() => {
         res.status(204).send();
       })
@@ -168,47 +179,72 @@ module.exports = {
       });
   },
 
-  postMessage: function (req, res) {
-    return db
-      .queryAsync(
-        `INSERT INTO messages (user_id, trade_id, content) VALUES ($1, $2, $3)`,
-        [req.body.user_id, req.body.trade_id, req.body.content]
-      )
-      .then(() => {
-        res.status(201).send();
-      })
-      .catch(() => {
-        res.status(500).send();
-      });
+  postMessage: async function (req, res) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await Promise.all([
+        client.query(createMessageQuery, [
+          req.body.user_id,
+          req.body.trade_id,
+          req.body.content,
+        ]),
+        client.query(updateQueryOne, [req.body.user_id, req.body.trade_id]),
+        client.query(updateQueryTwo, [req.body.user_id, req.body.trade_id]),
+      ]);
+      res.status(201);
+      client.query("COMMIT");
+    } catch (e) {
+      console.log(e);
+      client.query("ROLLBACK");
+      res.status(500);
+    } finally {
+      client.release();
+      res.send();
+    }
   },
 
-  handleTrade: function (req, res) {
-    return db
-      .queryAsync(
-        `UPDATE trades SET pending = false, accepted = $1 WHERE id = $2`,
-        [req.query.accepted, req.query.trade_id]
-      )
-      .then(() => {
-        res.status(204).send();
-      })
-      .catch((err) => {
-        console.log(err);
-        res.send();
-      });
+  handleTrade: async function (req, res) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await Promise.all([
+        client.query(
+          `UPDATE trades SET pending = false, accepted = $3 WHERE id = $2 AND user_target_id = $1`,
+          [req.body.user_id, req.body.trade_id, req.body.accepted]
+        ),
+        client.query(updateQueryTwo, [req.body.user_id, req.body.trade_id]),
+      ]);
+      client.query("COMMIT");
+      res.status(204);
+    } catch (e) {
+      console.log(e);
+      client.query("ROLLBACK");
+      res.status(500);
+    } finally {
+      client.release();
+      res.send();
+    }
   },
 
-  showToUser: function (req, res) {
-    return db
-      .queryAsync(`UPDATE trades SET shown_to_user = true WHERE id = $1`, [
-        req.query.trade_id,
-      ])
-      .then(() => {
-        res.status(204).send();
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).send();
-      });
+  showToUser: async function (req, res) {
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      await Promise.all([
+        client.query(updateQueryThree, [req.body.user_id, req.body.trade_id]),
+        client.query(updateQueryFour, [req.body.user_id, req.body.trade_id]),
+      ]);
+      res.status(204);
+      client.query("COMMIT");
+    } catch (e) {
+      console.log(e);
+      client.query("ROLLBACK");
+      res.status(500);
+    } finally {
+      client.release();
+      res.send();
+    }
   },
 
   removePlant: function (req, res) {
@@ -245,7 +281,7 @@ module.exports = {
       ])
       .then((response) => {
         console.log(response[0].rows[0]);
-        res.status(200).send(response[0].rows[0].id.toString());
+        res.status(200).send(response[0].rows[0]);
       })
       .catch((err) => {
         console.log(err);
