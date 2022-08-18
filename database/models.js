@@ -294,12 +294,15 @@ module.exports = {
   WITH
     coords
   AS
-    (SELECT longitude, latitude FROM zips where zip = $2)
+    (SELECT * FROM zips where zip = $2)
   UPDATE
     users
   SET
     zip = $2,
     profile_pic = $3,
+    city = (select city from coords),
+    county = (select county from coords),
+    state = (select state from coords),
     longitude = (select longitude from coords),
     latitude = (select latitude from coords)
   WHERE
@@ -472,5 +475,4 @@ module.exports = {
   ORDER BY
     p.created_at DESC;
   `,
-
 };
