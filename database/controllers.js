@@ -3,6 +3,7 @@ const Promise = require("bluebird");
 require("dotenv").config();
 const queryModels = require("./models.js");
 
+
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -219,6 +220,7 @@ module.exports = {
           req.body.user_id,
           req.body.trade_id,
         ]),
+
       ]);
       client.query("COMMIT");
       res.status(204);
@@ -245,6 +247,7 @@ module.exports = {
           req.body.user_id,
           req.body.trade_id,
         ]),
+
       ]);
       res.status(204);
       client.query("COMMIT");

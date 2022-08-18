@@ -7,6 +7,7 @@ app.use(express.json());
 
 app.get("/all", controllers.findByLocation);
 app.get("/userId", controllers.getUserInfo);
+
 app.get("/myPlants", controllers.getMyPlants);
 
 app.get("/favorites", controllers.getFavorites);
