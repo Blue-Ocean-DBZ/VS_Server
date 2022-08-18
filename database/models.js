@@ -58,6 +58,27 @@ module.exports = {
       distance
     LIMIT 100;`,
 
+  getMyPlantsQuery: `
+  SELECT
+    p.plant_name,
+    p.id plant_id,
+    p.photo,
+    p.created_at,
+    u.zip,
+    u.id user_id
+  FROM
+    plants p
+  INNER JOIN
+    users u
+  ON
+    u.id = p.user_id
+  WHERE
+    user_id = $1
+  AND
+    p.deleted = false
+  ORDER BY
+    p.created_at DESC;`,
+
   getTradesQuery: `
   SELECT
     t.id trade_id,
@@ -275,4 +296,170 @@ module.exports = {
     latitude = (select latitude from coords)
   WHERE
     id = $1`,
+
+  findByLocationQueryFB: `
+    WITH
+      currentUser
+    AS
+      (SELECT id FROM users WHERE firebase_id = $1)
+    SELECT
+      f.id favorite,
+      t.pending,
+      withinTwenty.username,
+      p.id plant_id,
+      p.plant_name,
+      p.photo,
+      p.user_id,
+      withinTwenty.profile_pic,
+      withinTwenty.distance
+    FROM
+      plants p
+    INNER JOIN
+      (
+        SELECT
+          u.username,
+          u.profile_pic,
+          u.id,
+          ST_Distance(u.geolocation, distanceTable.geolocation) distance
+        FROM
+          users u,
+        LATERAL
+          (
+            SELECT
+              id,
+              geolocation
+            FROM
+              users
+            WHERE
+              users.id = (SELECT id FROM currentUser)
+          )
+        AS
+          distanceTable
+        WHERE
+          u.id != distanceTable.id
+        AND
+          ST_DWithin(
+            u.geolocation,
+            distanceTable.geolocation,
+            240000
+          )
+        ) withinTwenty
+        ON
+          p.user_id = withinTwenty.id
+    LEFT JOIN
+      trades t on t.plant_target_id = p.id
+    LEFT JOIN
+      favorites f on f.user_id = (SELECT id FROM currentUser)
+    AND
+      f.plant_id = p.id
+    AND
+      f.deleted = false
+    WHERE
+      p.deleted = false
+    ORDER BY
+      distance
+    LIMIT 100;`,
+
+  getTradesQueryFB: `
+  WITH
+    currentUser
+  AS
+    (SELECT id FROM users WHERE firebase_id = $1)
+  SELECT
+    t.id trade_id,
+    t.pending,
+    t.accepted,
+    t.shown_to_user_offer,
+    t.shown_to_user_target,
+    t.created_at,
+    JSON_BUILD_OBJECT
+    (
+      'plant_id',p.id,
+      'photo',p.photo,
+      'owner_id',p.user_id,
+      'plant_name', p.plant_name,
+      'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
+    ) plant_target,
+    JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id,'plant_name',p.plant_name,'username',(SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )) plant_offer
+  FROM
+    (
+      SELECT
+        *
+      FROM
+        trades t
+      WHERE
+        t.user_target_id = (SELECT id FROM currentUser)
+      OR
+        t.user_offer_id = (SELECT id FROM currentUser)
+    ) t
+  INNER JOIN
+    plants p
+  ON
+    p.id = t.plant_target_id
+  INNER JOIN
+    plants p2
+  ON
+    p2.id = t.plant_offer_id
+  ORDER BY
+    created_at DESC`,
+
+  getFavoritesQueryFB: `
+  WITH
+    currentUser
+  AS
+    (SELECT id FROM users WHERE firebase_id = $1)
+  SELECT
+      f.id favorites_id,
+      f.distance,
+      u.username,
+      u.zip,
+      p.plant_name,
+      p.id plant_id,
+      p.photo,
+      p.user_id owner_id,
+      p.created_at
+    FROM
+      plants p
+    INNER JOIN
+      favorites f
+    ON
+      f.plant_id = p.id
+    INNER JOIN
+      users u
+    ON
+      u.id = p.user_id
+    WHERE
+      p.deleted = false
+    AND
+      f.user_id = (SELECT id FROM currentUser)
+    AND
+      f.deleted = false
+    ORDER BY
+      f.created_at DESC;`,
+
+  getMyPlantsFB: `
+  WITH
+    currentUser
+  AS
+    (SELECT id FROM users WHERE firebase_id = $1)
+  SELECT
+    p.plant_name,
+    p.id plant_id,
+    p.photo,
+    p.created_at,
+    u.zip,
+    u.id user_id
+  FROM
+    plants p
+  INNER JOIN
+    users u
+  ON
+    u.id = p.user_id
+  WHERE
+    user_id = (SELECT id FROM currentUser)
+  AND
+    p.deleted = false
+  ORDER BY
+    p.created_at DESC;
+  `,
 };

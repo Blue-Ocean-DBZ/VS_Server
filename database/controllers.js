@@ -13,6 +13,7 @@ const updateQueryTwo = require("./models.js").updateQueryTwo;
 const createMessageQuery = require("./models.js").createMessageQuery;
 const updateQueryThree = require("./models.js").updateQueryThree;
 const updateQueryFour = require("./models.js").updateQueryFour;
+const getMyPlantsQuery = require("./models.js").getMyPlants;
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -64,28 +65,7 @@ module.exports = {
 
   getMyPlants: function (req, res) {
     return db
-      .queryAsync(
-        `SELECT
-          p.plant_name,
-          p.id plant_id,
-          p.photo,
-          p.created_at,
-          u.zip,
-          u.id user_id
-        FROM
-          plants p
-        INNER JOIN
-          users u
-        ON
-          u.id = p.user_id
-        WHERE
-          user_id = $1
-        AND
-          p.deleted = false
-        ORDER BY
-          p.created_at DESC;`,
-        [req.query.user_id]
-      )
+      .queryAsync(getMyPlantsQuery, [req.query.user_id])
       .then((response) => {
         res.status(200).send(response[0].rows);
       })
