@@ -2,19 +2,6 @@ const { Pool } = require("pg");
 const Promise = require("bluebird");
 require("dotenv").config();
 const queryModels = require("./models.js");
-// const findByLocationQuery = require("./models.js").findByLocationQuery;
-// const getTradesQuery = require("./models.js").getTradesQuery;
-// const getFavoritesQuery = require("./models.js").getFavoritesQuery;
-// const addUserQuery = require("./models.js").addUserQuery;
-// const requestTradeQuery = require("./models.js").requestTradeQuery;
-// const addToFavoritesQuery = require("./models.js").addToFavoritesQuery;
-// const editUserQuery = require("./models.js").editUserQuery;
-// const updateQueryOne = require("./models.js").updateQueryOne;
-// const updateQueryTwo = require("./models.js").updateQueryTwo;
-// const createMessageQuery = require("./models.js").createMessageQuery;
-// const updateQueryThree = require("./models.js").updateQueryThree;
-// const updateQueryFour = require("./models.js").updateQueryFour;
-// const getMyPlantsQuery = require("./models.js").getMyPlants;
 
 const pool = new Pool({
   user: process.env.DB_USER,
