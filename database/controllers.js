@@ -225,7 +225,7 @@ module.exports = {
       await client.query("BEGIN");
       await Promise.all([
         client.query(
-          `UPDATE trades SET pending = false, accepted = $3 WHERE id = $2 AND user_target_id = $1 `,
+          `UPDATE trades SET pending = false, accepted = $3, created_AT = CURRENT_TIMESTAMP WHERE id = $2 AND user_target_id = $1 `,
           [req.body.user_id, req.body.trade_id, req.body.accepted]
         ),
         client.query(queryModels.updateQueryTwo, [
