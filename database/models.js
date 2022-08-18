@@ -10,6 +10,9 @@ module.exports = {
       p.user_id,
       withinTwenty.profile_pic,
       withinTwenty.zip,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
       withinTwenty.distance
     FROM
       plants p
@@ -19,6 +22,9 @@ module.exports = {
           u.zip,
           u.username,
           u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
           u.id,
           ST_Distance(u.geolocation, distanceTable.geolocation) distance
         FROM
@@ -317,12 +323,15 @@ module.exports = {
       f.id favorite,
       t.pending,
       withinTwenty.username,
-      withinTwenty.zip,
       p.id plant_id,
       p.plant_name,
       p.photo,
       p.user_id,
+      withinTwenty.zip,
       withinTwenty.profile_pic,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
       withinTwenty.distance
     FROM
       plants p
@@ -332,6 +341,9 @@ module.exports = {
           u.zip,
           u.username,
           u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
           u.id,
           ST_Distance(u.geolocation, distanceTable.geolocation) distance
         FROM
