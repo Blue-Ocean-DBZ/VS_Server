@@ -88,8 +88,8 @@ const trades_table = `CREATE TABLE trades (
   CONSTRAINT fk_plant_target
   FOREIGN KEY(plant_target_id)
   REFERENCES "plants"(id),
-  shown_to_user_offer BOOLEAN DEFAULT NULL,
-  shown_to_user_target BOOLEAN DEFAULT NULL,
+  shown_to_user_offer BOOLEAN DEFAULT true,
+  shown_to_user_target BOOLEAN DEFAULT false,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`;
 
@@ -112,7 +112,7 @@ const trade_components_table = `CREATE TABLE trade_components ( \
 const zip_coords = `CREATE TABLE zips (
   id SERIAL PRIMARY KEY,
   zip VARCHAR,
-  decomissioned DEFAULT NULL,
+  decomissioned INT DEFAULT NULL,
   city VARCHAR DEFAULT NULL,
   state VARCHAR DEFAULT NULL,
   county VARCHAR DEFAULT NULL,
