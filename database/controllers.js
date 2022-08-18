@@ -14,7 +14,6 @@ const createMessageQuery = require("./models.js").createMessageQuery;
 const updateQueryThree = require("./models.js").updateQueryThree;
 const updateQueryFour = require("./models.js").updateQueryFour;
 
-
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -151,6 +150,7 @@ module.exports = {
   },
 
   requestTrade: function (req, res) {
+    console.log(req.body);
     return db
       .queryAsync(requestTradeQuery, [
         req.body.plant_offer_id,
@@ -168,7 +168,7 @@ module.exports = {
   getMessages: function (req, res) {
     return db
       .queryAsync(
-        `SELECT * FROM messages WHERE trade_id = $1 ORDER BY created_at;`,
+        `SELECT * FROM messages m INNER JOIN users u ON u.id = m.user_id WHERE trade_id = $1 ORDER BY created_at;`,
         [req.query.trade_id]
       )
       .then((response) => {

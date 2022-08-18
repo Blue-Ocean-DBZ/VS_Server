@@ -4,6 +4,7 @@ CREATE TABLE users (
   username VARCHAR NOT NULL,
   firebase_id VARCHAR UNIQUE NOT NULL,
   profile_pic VARCHAR DEFAULT NULL,
+  user_status VARCHAR,
   zip VARCHAR NOT NULL,
   longitude DECIMAL NOT NULL,
   latitude DECIMAL NOT NULL,
