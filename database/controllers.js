@@ -67,7 +67,7 @@ module.exports = {
   getMyPlants: function (req, res) {
     if (req.query.firebase_id) {
       return db
-        .queryAsync(queryModels.getMyPlantsQueryFB, [req.query.user_id])
+        .queryAsync(queryModels.getMyPlantsQueryFB, [req.query.firebase_id])
         .then((response) => {
           res.status(200).send(response[0].rows);
         })
@@ -136,7 +136,7 @@ module.exports = {
   getTrades: function (req, res) {
     if (req.query.firebase_id) {
       return db
-        .query(queryModels.getTradesQueryFB, [req.query.user_id])
+        .query(queryModels.getTradesQueryFB, [req.query.firebase_id])
         .then((response) => {
           res.send(response.rows);
         })
@@ -176,7 +176,7 @@ module.exports = {
   getMessages: function (req, res) {
     return db
       .queryAsync(
-        `SELECT * FROM messages m INNER JOIN users u ON u.id = m.user_id WHERE trade_id = $1 ORDER BY created_at;`,
+        `SELECT u.username, u.profile_pic, u.id user_id,  m.* FROM messages m INNER JOIN users u ON u.id = m.user_id WHERE trade_id = $1 ORDER BY created_at;`,
         [req.query.trade_id]
       )
       .then((response) => {
@@ -289,7 +289,7 @@ module.exports = {
   getFavorites: function (req, res) {
     if (req.query.firebase_id) {
       return db
-        .queryAsync(queryModels.getFavoritesQueryFB, [req.query.user_id])
+        .queryAsync(queryModels.getFavoritesQueryFB, [req.query.firebase_id])
         .then((response) => {
           res.status(200).send(response[0].rows);
         })
@@ -326,9 +326,10 @@ module.exports = {
   },
 
   findByLocation: function (req, res) {
-    if (req.firebase_id) {
+    if (req.query.firebase_id) {
+      console.log("we here");
       return db
-        .queryAsync(queryModels.findByLocationQueryFB, [req.query.user_id])
+        .queryAsync(queryModels.findByLocationQueryFB, [req.query.firebase_id])
         .then((response) => {
           res.status(200).send(response[0].rows);
         })

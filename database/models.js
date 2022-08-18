@@ -437,7 +437,7 @@ module.exports = {
     ORDER BY
       f.created_at DESC;`,
 
-  getMyPlantsFB: `
+  getMyPlantsQueryFB: `
   WITH
     currentUser
   AS
