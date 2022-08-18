@@ -17,8 +17,10 @@ const users_table = `CREATE TABLE users (\
   firebase_id VARCHAR UNIQUE NOT NULL, \
   user_status VARCHAR DEFAULT NULL, \
   profile_pic VARCHAR DEFAULT NULL, \
-  city VARCHAR DEFAULT NULL, \
   zip VARCHAR NOT NULL, \
+  city VARCHAR DEFAULT NULL, \
+  county VARCHAR DEFAULT NULL, \
+  state VARCHAR DEFAULT NULL, \
   longitude DOUBLE PRECISION NOT NULL, \
   latitude DOUBLE PRECISION NOT NULL, \
   geolocation geography(point) NOT NULL \
@@ -109,11 +111,15 @@ const trade_components_table = `CREATE TABLE trade_components ( \
 const zip_coords = `CREATE TABLE zips (
   id SERIAL PRIMARY KEY,
   zip VARCHAR,
+  decomissioned DEFAULT NULL,
+  city VARCHAR DEFAULT NULL,
+  state VARCHAR DEFAULT NULL,
+  county VARCHAR DEFAULT NULL,
   latitude DOUBLE PRECISION,
   longitude DOUBLE PRECISION
 )`;
 
-const copy_zip = `COPY zips(zip, latitude, longitude)
+const copy_zip = `COPY zips(zip, decomissioned, city, state, county, latitude, longitude)
 FROM '${zips_path}'
 DELIMITER ','
 CSV HEADER;`;

@@ -9,12 +9,14 @@ module.exports = {
       p.photo,
       p.user_id,
       withinTwenty.profile_pic,
+      withinTwenty.zip,
       withinTwenty.distance
     FROM
       plants p
     INNER JOIN
       (
         SELECT
+          u.zip,
           u.username,
           u.profile_pic,
           u.id,
@@ -167,6 +169,9 @@ module.exports = {
       firebase_id,
       profile_pic,
       zip,
+      city,
+      county,
+      state,
       longitude,
       latitude,
       geolocation
@@ -177,6 +182,9 @@ module.exports = {
       $2,
       $3,
       $4,
+      (SELECT city FROM coords),
+      (SELECT county FROM coords),
+      (SELECT state FROM coords),
       (SELECT longitude FROM coords),
       (SELECT latitude FROM coords),
       ST_SetSRID(ST_MakePoint(
@@ -306,6 +314,7 @@ module.exports = {
       f.id favorite,
       t.pending,
       withinTwenty.username,
+      withinTwenty.zip,
       p.id plant_id,
       p.plant_name,
       p.photo,
@@ -317,6 +326,7 @@ module.exports = {
     INNER JOIN
       (
         SELECT
+          u.zip,
           u.username,
           u.profile_pic,
           u.id,
