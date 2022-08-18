@@ -645,7 +645,6 @@ WITH coords AS (SELECT longitude, latitude FROM zips where zip = 95442)
 
 
 
-
 BEGIN
 
 INSERT INTO messages (user_id, trade_id, content) VALUES ($1, $2, $3)
@@ -669,4 +668,5 @@ AND
   user_target_id = $1
 
 COMMIT
+
 
