@@ -15,7 +15,9 @@ const users_table = `CREATE TABLE users (\
   id SERIAL PRIMARY KEY, \
   username VARCHAR NOT NULL, \
   firebase_id VARCHAR UNIQUE NOT NULL, \
+  user_status VARCHAR DEFAULT NULL, \
   profile_pic VARCHAR DEFAULT NULL, \
+  city VARCHAR DEFAULT NULL, \
   zip VARCHAR NOT NULL, \
   longitude DOUBLE PRECISION NOT NULL, \
   latitude DOUBLE PRECISION NOT NULL, \
