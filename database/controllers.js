@@ -33,6 +33,8 @@ module.exports = {
   },
 
   editUser: function (req, res) {
+    console.log(req.body);
+    console.log(editUserQuery);
     return db
       .queryAsync(queryModels.editUserQuery, [
         req.body.user_id,
