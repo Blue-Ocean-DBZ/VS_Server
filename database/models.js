@@ -440,6 +440,7 @@ module.exports = {
       f.id favorites_id,
       userTrades.pending,
       withinTwenty.username,
+      withinTwenty.zip,
       p.id plant_id,
       p.plant_name,
       p.photo,
