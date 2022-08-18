@@ -109,6 +109,27 @@ module.exports = {
     ORDER BY
       p.created_at DESC;`,
 
+  getMyPlantsQuery: `
+  SELECT
+    p.plant_name,
+    p.id plant_id,
+    p.photo,
+    p.created_at,
+    u.zip,
+    u.id user_id
+  FROM
+    plants p
+  INNER JOIN
+    users u
+  ON
+    u.id = p.user_id
+  WHERE
+    user_id = $1
+  AND
+    p.deleted = false
+  ORDER BY
+    p.created_at DESC;`,
+
   getTradesQuery: `
   SELECT
     t.id trade_id,
