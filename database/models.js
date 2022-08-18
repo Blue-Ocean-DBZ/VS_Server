@@ -102,6 +102,9 @@ module.exports = {
     SELECT
       f.id favorites_id,
       f.distance,
+      u.username,
+      u.zip,
+      p.plant_name,
       p.id plant_id,
       p.photo,
       p.user_id owner_id,
@@ -112,6 +115,10 @@ module.exports = {
       favorites f
     ON
       f.plant_id = p.id
+    INNER JOIN
+      users u
+    ON
+      u.id = p.user_id
     WHERE
       p.deleted = false
     AND
@@ -200,9 +207,62 @@ module.exports = {
         currentUser.here = coords.there)
   )`,
 
-  createMessageQuery: ``,
+  createMessageQuery: `
+  INSERT INTO
+    messages
+      (
+        user_id,
+        trade_id,
+        content
+      )
+  VALUES ($1, $2, $3)
+  `,
 
-  editUser: `
+  updateQueryOne: `
+  UPDATE
+    trades
+  SET
+    shown_to_user_target = false
+  WHERE
+    id = $2
+  AND
+    user_offer_id = $1;
+  `,
+
+  updateQueryTwo: `
+  UPDATE
+    trades
+  SET
+    shown_to_user_offer = false
+  WHERE
+    id = $2
+  AND
+    user_target_id = $1;
+  `,
+
+  updateQueryThree: `
+  UPDATE
+    trades
+  SET
+    shown_to_user_offer = true
+  WHERE
+    id = $2
+  AND
+    user_offer_id = $1
+  `,
+
+  updateQueryFour: `
+  UPDATE
+    trades
+  SET
+    shown_to_user_target = true
+  WHERE
+    id = $2
+  AND
+    user_target_id = $1
+  `,
+
+  editUserQuery: `
   WITH
     coords
   AS
@@ -214,5 +274,6 @@ module.exports = {
     profile_pic = $3,
     longitude = (select longitude from coords),
     latitude = (select latitude from coords)
-  WHERE id = $1`,
+  WHERE
+    id = $1`,
 };
