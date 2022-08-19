@@ -13,6 +13,7 @@ module.exports = {
       withinTwenty.city,
       withinTwenty.county,
       withinTwenty.state,
+
       withinTwenty.distance
     FROM
       plants p
@@ -360,6 +361,7 @@ module.exports = {
       f.id favorite,
       t.pending,
       withinTwenty.username,
+      withinTwenty.zip,
       p.id plant_id,
       p.plant_name,
       p.photo,
