@@ -93,6 +93,7 @@ module.exports = {
       t.id trade_id,
       t.pending,
       t.accepted,
+      t.notifications1 + t.notifications2 notifications,
       t.shown_to_user_offer,
       t.shown_to_user_target,
       t.created_at,
@@ -108,7 +109,9 @@ module.exports = {
     FROM
       (
         SELECT
-          *
+          *,
+          (SELECT COUNT(*) FROM trades t WHERE t.user_target_id = $1 AND t.shown_to_user_target = false) notifications1,
+          (SELECT COUNT(*) FROM trades t WHERE t.user_offer_id = $1 AND t.shown_to_user_offer  = false) notifications2
         FROM
           trades t
         WHERE
@@ -433,6 +436,7 @@ module.exports = {
     t.id trade_id,
     t.pending,
     t.accepted,
+    t.notifications1 + t.notifications2 notifications,
     t.shown_to_user_offer,
     t.shown_to_user_target,
     t.created_at,
@@ -448,7 +452,9 @@ module.exports = {
   FROM
     (
       SELECT
-        *
+        *,
+        (SELECT COUNT(*) FROM trades t WHERE t.user_target_id = $1 AND t.shown_to_user_target = false) notifications1,
+        (SELECT COUNT(*) FROM trades t WHERE t.user_offer_id = $1 AND t.shown_to_user_offer  = false) notifications2
       FROM
         trades t
       WHERE
