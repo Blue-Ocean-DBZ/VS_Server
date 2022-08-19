@@ -146,7 +146,7 @@ module.exports = {
 
   requestTrade: async function (req, res) {
     console.log(req.body);
-    const client = await pool.client();
+    const client = await pool.connect();
     try {
       client.query("BEGIN");
       await Promise.all([
