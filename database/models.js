@@ -10,6 +10,10 @@ module.exports = {
       p.user_id,
       withinTwenty.profile_pic,
       withinTwenty.zip,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
+
       withinTwenty.distance
     FROM
       plants p
@@ -19,6 +23,9 @@ module.exports = {
           u.zip,
           u.username,
           u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
           u.id,
           ST_Distance(u.geolocation, distanceTable.geolocation) distance
         FROM
@@ -61,64 +68,64 @@ module.exports = {
     LIMIT 100;`,
 
   getMyPlantsQuery: `
-  SELECT
-    p.plant_name,
-    p.id plant_id,
-    p.photo,
-    p.created_at,
-    u.zip,
-    u.id user_id
-  FROM
-    plants p
-  INNER JOIN
-    users u
-  ON
-    u.id = p.user_id
-  WHERE
-    user_id = $1
-  AND
-    p.deleted = false
-  ORDER BY
-    p.created_at DESC;`,
+    SELECT
+      p.plant_name,
+      p.id plant_id,
+      p.photo,
+      p.created_at,
+      u.zip,
+      u.id user_id
+    FROM
+      plants p
+    INNER JOIN
+      users u
+    ON
+      u.id = p.user_id
+    WHERE
+      user_id = $1
+    AND
+      p.deleted = false
+    ORDER BY
+      p.created_at DESC;`,
 
   getTradesQuery: `
-  SELECT
-    t.id trade_id,
-    t.pending,
-    t.accepted,
-    t.shown_to_user_offer,
-    t.shown_to_user_target,
-    t.created_at,
-    JSON_BUILD_OBJECT
-    (
-      'plant_id',p.id,
-      'photo',p.photo,
-      'owner_id',p.user_id,
-      'plant_name', p.plant_name,
-      'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
-    ) plant_target,
-    JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id,'plant_name',p.plant_name,'username',(SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )) plant_offer
-  FROM
-    (
-      SELECT
-        *
-      FROM
-        trades t
-      WHERE
-        t.user_target_id = $1
-      OR
-        t.user_offer_id = $1
-    ) t
-  INNER JOIN
-    plants p
-  ON
-    p.id = t.plant_target_id
-  INNER JOIN
-    plants p2
-  ON
-    p2.id = t.plant_offer_id
-  ORDER BY
-    created_at DESC`,
+    SELECT
+      t.id trade_id,
+      t.pending,
+      t.accepted,
+      t.shown_to_user_offer,
+      t.shown_to_user_target,
+      t.created_at,
+      JSON_BUILD_OBJECT
+      (
+        'plant_id',p.id,
+        'photo',p.photo,
+        'owner_id',p.user_id,
+        'plant_name', p.plant_name,
+        'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
+      ) plant_target,
+      JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id,'plant_name',p.plant_name,'username',(SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )) plant_offer
+    FROM
+      (
+        SELECT
+          *
+        FROM
+          trades t
+        WHERE
+          t.user_target_id = $1
+        OR
+          t.user_offer_id = $1
+      ) t
+    INNER JOIN
+      plants p
+    ON
+      p.id = t.plant_target_id
+    INNER JOIN
+      plants p2
+    ON
+      p2.id = t.plant_offer_id
+    ORDER BY
+      created_at DESC`,
 
   getFavoritesQuery: `
     SELECT
@@ -126,6 +133,8 @@ module.exports = {
       f.distance,
       u.username,
       u.zip,
+      u.city,
+      u.county,
       p.plant_name,
       p.id plant_id,
       p.photo,
@@ -211,99 +220,137 @@ module.exports = {
         )`,
 
   addToFavoritesQuery: `
-  WITH
-    coords
-  AS
-    (select 1 there, p.id, geolocation from plants p inner join users u on p.user_id = u.id where p.id = $2),
-    currentUser
-  AS
-    (select 1 here, geolocation from users u where u.id = $1)
-  INSERT INTO
-    favorites
-  (user_id, plant_id, distance)
-    VALUES
-    ($1, $2,
-    (
-      SELECT ST_Distance(
-        coords.geolocation,
-        currentUser.geolocation)
-      FROM
-        coords
-      INNER JOIN
-        currentUser
-      ON
-        currentUser.here = coords.there)
-  )`,
+    WITH
+      coords
+    AS
+      (select 1 there, p.id, geolocation from plants p inner join users u on p.user_id = u.id where p.id = $2),
+      currentUser
+    AS
+      (select 1 here, geolocation from users u where u.id = $1)
+    INSERT INTO
+      favorites
+    (user_id, plant_id, distance)
+      VALUES
+      ($1, $2,
+      (
+        SELECT ST_Distance(
+          coords.geolocation,
+          currentUser.geolocation)
+        FROM
+          coords
+        INNER JOIN
+          currentUser
+        ON
+          currentUser.here = coords.there)
+    )`,
 
   createMessageQuery: `
-  INSERT INTO
-    messages
-      (
-        user_id,
-        trade_id,
-        content
-      )
-  VALUES ($1, $2, $3)
-  `,
+    INSERT INTO
+      messages
+        (
+          user_id,
+          trade_id,
+          content
+        )
+    VALUES ($1, $2, $3)`,
 
   updateQueryOne: `
-  UPDATE
-    trades
-  SET
-    shown_to_user_target = false
-  WHERE
-    id = $2
-  AND
-    user_offer_id = $1;
-  `,
+    UPDATE
+      trades
+    SET
+      shown_to_user_target = false
+    WHERE
+      id = $2
+    AND
+      user_offer_id = $1;`,
 
   updateQueryTwo: `
-  UPDATE
-    trades
-  SET
-    shown_to_user_offer = false
-  WHERE
-    id = $2
-  AND
-    user_target_id = $1;
-  `,
+    UPDATE
+      trades
+    SET
+      shown_to_user_offer = false
+    WHERE
+      id = $2
+    AND
+      user_target_id = $1;`,
 
   updateQueryThree: `
-  UPDATE
-    trades
-  SET
-    shown_to_user_offer = true
-  WHERE
-    id = $2
-  AND
-    user_offer_id = $1
-  `,
+    UPDATE
+      trades
+    SET
+      shown_to_user_offer = true
+    WHERE
+      id = $2
+    AND
+      user_offer_id = $1`,
 
   updateQueryFour: `
-  UPDATE
-    trades
-  SET
-    shown_to_user_target = true
-  WHERE
-    id = $2
-  AND
-    user_target_id = $1
-  `,
+    UPDATE
+      trades
+    SET
+      shown_to_user_target = true
+    WHERE
+      id = $2
+    AND
+      user_target_id = $1`,
 
   editUserQuery: `
-  WITH
-    coords
-  AS
-    (SELECT longitude, latitude FROM zips where zip = $2)
-  UPDATE
-    users
-  SET
-    zip = $2,
-    profile_pic = $3,
-    longitude = (select longitude from coords),
-    latitude = (select latitude from coords)
-  WHERE
-    id = $1`,
+    WITH
+      coords
+    AS
+      (SELECT * FROM zips where zip = $2)
+    UPDATE
+      users
+    SET
+      zip = $2,
+      profile_pic = $3,
+      city = (select city from coords),
+      county = (select county from coords),
+      state = (select state from coords),
+      longitude = (select longitude from coords),
+      latitude = (select latitude from coords)
+    WHERE
+      id = $1`,
+
+  handleTradeQuery: `
+    UPDATE
+      trades
+    SET
+      pending = false,
+      accepted = $3,
+      created_AT = CURRENT_TIMESTAMP
+    WHERE
+      id = $2
+    AND
+      user_target_id = $1`,
+
+  getMessagesQuery: `
+    SELECT
+      u.username,
+      u.profile_pic,
+      u.id user_id,
+      m.*
+    FROM
+      messages m
+    INNER JOIN
+      users u
+    ON
+      u.id = m.user_id
+    WHERE
+      trade_id = $1
+    ORDER BY
+      created_at;`,
+
+  addPlantQuery: `
+  INSERT INTO
+    plants
+    (
+      plant_name,
+      photo,
+      user_id
+    )
+  VALUES
+  ($1, $2, $3)`,
 
   findByLocationQueryFB: `
     WITH
@@ -319,7 +366,11 @@ module.exports = {
       p.plant_name,
       p.photo,
       p.user_id,
+      withinTwenty.zip,
       withinTwenty.profile_pic,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
       withinTwenty.distance
     FROM
       plants p
@@ -329,6 +380,9 @@ module.exports = {
           u.zip,
           u.username,
           u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
           u.id,
           ST_Distance(u.geolocation, distanceTable.geolocation) distance
         FROM
@@ -472,5 +526,4 @@ module.exports = {
   ORDER BY
     p.created_at DESC;
   `,
-
 };

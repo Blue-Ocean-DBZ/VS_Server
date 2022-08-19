@@ -1,7 +1,7 @@
 const pg = require("pg");
 require("dotenv").config();
 const path = require("path");
-const zips_path = path.resolve("/tmp/zip_code_database_latlong.csv");
+const zips_path = path.resolve("data/zip_code_database_truncated.csv");
 
 let client = new pg.Client({
   user: process.env.DB_USER,
@@ -19,7 +19,6 @@ const users_table = `CREATE TABLE users (\
   profile_pic VARCHAR DEFAULT NULL, \
   city VARCHAR DEFAULT NULL, \
   zip VARCHAR NOT NULL, \
-  city VARCHAR DEFAULT NULL, \
   county VARCHAR DEFAULT NULL, \
   state VARCHAR DEFAULT NULL, \
   longitude DOUBLE PRECISION NOT NULL, \
@@ -88,8 +87,8 @@ const trades_table = `CREATE TABLE trades (
   CONSTRAINT fk_plant_target
   FOREIGN KEY(plant_target_id)
   REFERENCES "plants"(id),
-  shown_to_user_offer BOOLEAN DEFAULT NULL,
-  shown_to_user_target BOOLEAN DEFAULT NULL,
+  shown_to_user_offer BOOLEAN DEFAULT true,
+  shown_to_user_target BOOLEAN DEFAULT false,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );`;
 
@@ -112,7 +111,7 @@ const trade_components_table = `CREATE TABLE trade_components ( \
 const zip_coords = `CREATE TABLE zips (
   id SERIAL PRIMARY KEY,
   zip VARCHAR,
-  decomissioned DEFAULT NULL,
+  decomissioned DOUBLE PRECISION DEFAULT NULL,
   city VARCHAR DEFAULT NULL,
   state VARCHAR DEFAULT NULL,
   county VARCHAR DEFAULT NULL,

@@ -85,7 +85,7 @@ CREATE TABLE trades (
   REFERENCES "plants"(id),
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   user_target_id INT,
-  shown_to_user_offer BOOLEAN DEFAULT false,
+  shown_to_user_offer BOOLEAN DEFAULT true,
   shown_to_user_target BOOLEAN DEFAULT false,
   CONSTRAINT fk_user_target
   FOREIGN KEY(user_target_id)

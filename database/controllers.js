@@ -3,7 +3,6 @@ const Promise = require("bluebird");
 require("dotenv").config();
 const queryModels = require("./models.js");
 
-
 const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -29,7 +28,7 @@ module.exports = {
         res.status(201).send(response[0].rows[0].id.toString());
       })
       .catch((err) => {
-        console.log(err);
+        console.log("addUser error", err);
         res.status(500).send();
       });
   },
@@ -47,7 +46,7 @@ module.exports = {
         res.status(204).send();
       })
       .catch((err) => {
-        console.log(err);
+        console.log("editUser error", err);
         res.status(500).send();
       });
   },
@@ -60,7 +59,7 @@ module.exports = {
           res.status(200).send(response[0].rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("getMyPlantsFB error", err);
           res.status(500).send();
         });
     } else {
@@ -70,7 +69,7 @@ module.exports = {
           res.status(200).send(response[0].rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("getMyPlants error", err);
           res.status(500).send();
         });
     }
@@ -78,16 +77,16 @@ module.exports = {
 
   addPlant: function (req, res) {
     return db
-      .queryAsync(
-        `INSERT INTO plants (plant_name, photo, user_id) \
-    VALUES ($1, $2, $3) RETURNING id`,
-        [req.body.plant_name, req.body.photo, req.body.user_id]
-      )
-      .then((response) => {
-        res.status(201).send(response[0].rows[0].id.toString());
+      .queryAsync(queryModels.addPlantQuery, [
+        req.body.plant_name,
+        req.body.photo,
+        req.body.user_id,
+      ])
+      .then(() => {
+        res.status(201).send();
       })
       .catch((err) => {
-        console.log(err);
+        console.log("addPlant error", err);
         res.status(500).send();
       });
   },
@@ -102,7 +101,7 @@ module.exports = {
         res.status(201).send();
       })
       .catch((err) => {
-        console.log(err);
+        console.log("addToFavorites error", err);
         res.status(500).send();
       });
   },
@@ -116,7 +115,7 @@ module.exports = {
         res.status(204).send();
       })
       .catch((err) => {
-        console.log(err);
+        console.log("removeFromFavorites error", err);
         res.status(500).send();
       });
   },
@@ -129,7 +128,7 @@ module.exports = {
           res.send(response.rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("getTradesFB error", err);
           res.status(500).send();
         });
     } else {
@@ -139,39 +138,59 @@ module.exports = {
           res.send(response.rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("getTrades error", err);
           res.status(500).send();
         });
     }
   },
 
-  requestTrade: function (req, res) {
+  requestTrade: async function (req, res) {
     console.log(req.body);
-    return db
-      .queryAsync(queryModels.requestTradeQuery, [
-        req.body.plant_offer_id,
-        req.body.plant_target_id,
-      ])
-      .then(() => {
-        res.status(201).send();
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).send();
-      });
+    const client = await pool.client();
+    try {
+      client.query("BEGIN");
+      await Promise.all([
+        client.query(queryModels.requestTradeQuery, [
+          req.body.plant_offer_id,
+          req.body.plant_target_id,
+        ]),
+        client.query(queryModels.updateQueryOne, [
+          req.body.user_id,
+          req.body.trade_id,
+        ]),
+      ]);
+      res.status(201);
+      client.query("COMMIT");
+    } catch (e) {
+      console.log("requestTrade error", e);
+      res.status(500);
+      client.query("ROLLBACK");
+    } finally {
+      client.release();
+      res.send();
+    }
+    // return db
+    //   .queryAsync(queryModels.requestTradeQuery, [
+    //     req.body.plant_offer_id,
+    //     req.body.plant_target_id,
+    //   ])
+    //   .then(() => {
+    //     res.status(201).send();
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //     res.status(500).send();
+    //   });
   },
 
   getMessages: function (req, res) {
     return db
-      .queryAsync(
-        `SELECT u.username, u.profile_pic, u.id user_id,  m.* FROM messages m INNER JOIN users u ON u.id = m.user_id WHERE trade_id = $1 ORDER BY created_at;`,
-        [req.query.trade_id]
-      )
+      .queryAsync(queryModels.getMessagesQuery, [req.query.trade_id])
       .then((response) => {
         res.status(200).send(response[0].rows);
       })
       .catch((err) => {
-        console.log(err);
+        console.log("getMessages error", err);
         res.status(500).send();
       });
   },
@@ -198,7 +217,7 @@ module.exports = {
       res.status(201);
       client.query("COMMIT");
     } catch (e) {
-      console.log(e);
+      console.log("postMessages error", e);
       client.query("ROLLBACK");
       res.status(500);
     } finally {
@@ -212,20 +231,20 @@ module.exports = {
     try {
       await client.query("BEGIN");
       await Promise.all([
-        client.query(
-          `UPDATE trades SET pending = false, accepted = $3, created_AT = CURRENT_TIMESTAMP WHERE id = $2 AND user_target_id = $1 `,
-          [req.body.user_id, req.body.trade_id, req.body.accepted]
-        ),
+        client.query(queryModels.handleTradeQuery, [
+          req.body.user_id,
+          req.body.trade_id,
+          req.body.accepted,
+        ]),
         client.query(queryModels.updateQueryTwo, [
           req.body.user_id,
           req.body.trade_id,
         ]),
-
       ]);
       client.query("COMMIT");
       res.status(204);
     } catch (e) {
-      console.log(e);
+      console.log("handleTrade error", e);
       client.query("ROLLBACK");
       res.status(500);
     } finally {
@@ -247,12 +266,11 @@ module.exports = {
           req.body.user_id,
           req.body.trade_id,
         ]),
-
       ]);
       res.status(204);
       client.query("COMMIT");
     } catch (e) {
-      console.log(e);
+      console.log("showToUser error", e);
       client.query("ROLLBACK");
       res.status(500);
     } finally {
@@ -271,7 +289,7 @@ module.exports = {
         res.status(204).send();
       })
       .catch((err) => {
-        console.log(err);
+        console.log("removePlant error", err);
         res.status(500).send();
       });
   },
@@ -284,7 +302,7 @@ module.exports = {
           res.status(200).send(response[0].rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("getFavoritesFB error", err);
           res.status(500).send();
         });
     } else {
@@ -294,7 +312,7 @@ module.exports = {
           res.status(200).send(response[0].rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("getFavorites error", err);
           res.status(500).send();
         });
     }
@@ -310,7 +328,7 @@ module.exports = {
         res.status(200).send(response[0].rows[0]);
       })
       .catch((err) => {
-        console.log(err);
+        console.log("getUserInfo error", err);
         res.status(500).send();
       });
   },
@@ -324,7 +342,7 @@ module.exports = {
           res.status(200).send(response[0].rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("findByLocationFB error", err);
           res.status(500).send();
         });
     } else {
@@ -334,7 +352,7 @@ module.exports = {
           res.status(200).send(response[0].rows);
         })
         .catch((err) => {
-          console.log(err);
+          console.log("findByLocation error", err);
           res.status(500).send();
         });
     }
