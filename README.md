@@ -1,6 +1,8 @@
-# VS_Server
+Vegetation Station Server && Database
+https://github.com/Blue-Ocean-DBZ/VS_Server
 
-Database && Server for Vegetation Station iOS app
+iOS application:
+https://github.com/Blue-Ocean-DBZ/vegetationstation
 
 Directions:
 
