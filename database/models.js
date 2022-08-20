@@ -133,27 +133,30 @@ module.exports = {
   getTradesQuery: `
     SELECT
       t.id trade_id,
+      (SELECT COUNT(*) FROM trades t WHERE (t.user_target_id = $1 AND t.shown_to_user_target = false) OR (t.user_offer_id = $1 AND t.shown_to_user_offer = false)) notifications,
       t.pending,
       t.accepted,
-      t.notifications1 + t.notifications2 notifications,
       t.shown_to_user_offer,
       t.shown_to_user_target,
       t.created_at,
-      JSON_BUILD_OBJECT
-      (
-        'plant_id',p.id,
-        'photo',p.photo,
-        'owner_id',p.user_id,
+      JSON_BUILD_OBJECT(
+        'plant_id', p.id,
+        'photo', p.photo,
+        'owner_id', p.user_id,
         'plant_name', p.plant_name,
         'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
       ) plant_target,
-      JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id,'plant_name',p.plant_name,'username',(SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )) plant_offer
+      JSON_BUILD_OBJECT(
+        'plant_id', p2.id,
+        'photo', p2.photo,
+        'owner_id', p2.user_id,
+        'plant_name', p2.plant_name,
+        'username', (SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )
+      ) plant_offer
     FROM
       (
         SELECT
-          *,
-          (SELECT COUNT(*) FROM trades t WHERE t.user_target_id = $1 AND t.shown_to_user_target = false) notifications1,
-          (SELECT COUNT(*) FROM trades t WHERE t.user_offer_id = $1 AND t.shown_to_user_offer  = false) notifications2
+          *
         FROM
           trades t
         WHERE
@@ -162,11 +165,11 @@ module.exports = {
           t.user_offer_id = $1
       ) t
     INNER JOIN
-      plants p
+      (SELECT * FROM plants p WHERE p.deleted = false) p
     ON
       p.id = t.plant_target_id
     INNER JOIN
-      plants p2
+      (SELECT * FROM plants p WHERE p.deleted = false) p2
     ON
       p2.id = t.plant_offer_id
     ORDER BY
@@ -447,6 +450,7 @@ module.exports = {
       p.plant_name,
       p.photo,
       p.user_id,
+      withinTwenty.profile_pic,
       withinTwenty.zip,
       withinTwenty.profile_pic,
       withinTwenty.zip,

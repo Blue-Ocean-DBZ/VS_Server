@@ -33,8 +33,6 @@ module.exports = {
   },
 
   editUser: function (req, res) {
-    console.log(req.body);
-    console.log(queryModels.editUserQuery);
     return db
       .queryAsync(queryModels.editUserQuery, [
         req.body.user_id,
@@ -119,6 +117,16 @@ module.exports = {
   },
 
   getTrades: function (req, res) {
+    if (
+      req.query.firebase_id === null ||
+      req.query.user_id === null ||
+      req.query.firebase_id === "null" ||
+      req.query.user_id === "null" ||
+      req.query.user_id === "undefined" ||
+      req.query.firebase_id === "undefined"
+    ) {
+      res.status(500).send();
+    }
     if (req.query.firebase_id) {
       return db
         .query(queryModels.getTradesQueryFB, [req.query.firebase_id])
