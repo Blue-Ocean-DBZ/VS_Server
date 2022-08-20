@@ -729,3 +729,363 @@ SELECT
       distance
     LIMIT 100;
 
+
+
+
+
+
+SELECT
+      f.id favorite,
+      t.pending,
+      withinTwenty.username,
+      p.id plant_id,
+      p.plant_name,
+      p.photo,
+      p.user_id,
+      withinTwenty.profile_pic,
+      withinTwenty.zip,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
+      withinTwenty.distance
+    FROM
+      plants p
+    INNER JOIN
+      (
+        SELECT
+          u.zip,
+          u.username,
+          u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
+          u.id,
+          ST_Distance(u.geolocation, distanceTable.geolocation) distance
+        FROM
+          users u,
+        LATERAL
+          (
+            SELECT
+              id,
+              geolocation
+            FROM
+              users
+            WHERE
+              users.id = $1
+          )
+        AS
+          distanceTable
+        WHERE
+          u.id != distanceTable.id
+        AND
+          ST_DWithin(
+            u.geolocation,
+            distanceTable.geolocation,
+            240000
+          )
+        ) withinTwenty
+        ON
+          p.user_id = withinTwenty.id
+    LEFT JOIN
+      trades t on t.plant_target_id = p.id
+    LEFT JOIN
+      favorites f on f.user_id = $1
+    AND
+      f.plant_id = p.id
+    AND
+      f.deleted = false
+    WHERE
+      p.deleted = false
+    ORDER BY
+      distance
+    LIMIT 100;
+
+
+
+
+
+SELECT
+      f.id favorite,
+      t.pending,
+      withinTwenty.username,
+      p.id plant_id,
+      p.plant_name,
+      p.photo,
+      p.user_id,
+      withinTwenty.profile_pic,
+      withinTwenty.zip,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
+      withinTwenty.distance
+    FROM
+      plants p
+    INNER JOIN
+      (
+        SELECT
+          u.zip,
+          u.username,
+          u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
+          u.id,
+          ST_Distance(u.geolocation, distanceTable.geolocation) distance
+        FROM
+          users u,
+        LATERAL
+          (
+            SELECT
+              id,
+              geolocation
+            FROM
+              users
+            WHERE
+              users.id = $1
+          )
+        AS
+          distanceTable
+        WHERE
+          u.id != distanceTable.id
+        AND
+          ST_DWithin(
+            u.geolocation,
+            distanceTable.geolocation,
+            240000
+          )
+        ) withinTwenty
+
+
+
+
+
+
+
+
+
+
+         select
+ 	  f.id,
+      t.pending,
+      withinTwenty.username,
+      p.id plant_id,
+      p.plant_name,
+      p.photo,
+      p.user_id,
+      withinTwenty.profile_pic,
+      withinTwenty.zip,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
+      withinTwenty.distance
+    FROM
+      plants p
+    INNER JOIN
+      (
+        SELECT
+          u.zip,
+          u.username,
+          u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
+          u.id,
+          ST_Distance(u.geolocation, distanceTable.geolocation) distance
+        FROM
+          users u,
+        LATERAL
+          (
+            SELECT
+              id,
+              geolocation
+            FROM
+              users
+            WHERE
+              users.id = $1
+          )
+        AS
+          distanceTable
+        WHERE
+          u.id != distanceTable.id
+        AND
+          ST_DWithin(
+            u.geolocation,
+            distanceTable.geolocation,
+            240000
+          )
+        ) withinTwenty
+        ON
+          p.user_id = withinTwenty.id
+      left join favorites f on f.plant_id = p.id and f.user_id = $1 and f.deleted = false
+    LEFT JOIN
+      (select distinct pending, user_target_id, user_offer_id from (
+      select * from trades t inner join plants p on p.user_id = t.plant_target_id where
+      t.plant_target_id = p.id AND t.user_offer_id = $1) minitrades) t on t.user_target_id = $1 or t.user_offer_id = $1
+
+
+
+      or (t.plant_offer_id = p.id AND t.user_target_id = $1) t
+    LEFT JOIN
+      favorites f on f.user_id = $1
+    AND
+      f.plant_id = p.id
+    AND
+      f.deleted = false
+    WHERE
+      p.deleted = false
+    ORDER BY
+      distance
+    LIMIT 100;`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    SELECT
+      f.id favorite,
+      userTrades.pending,
+      withinTwenty.username,
+      p.id plant_id,
+      p.plant_name,
+      p.photo,
+      p.user_id,
+      withinTwenty.profile_pic,
+      withinTwenty.zip,
+      withinTwenty.city,
+      withinTwenty.county,
+      withinTwenty.state,
+      withinTwenty.distance
+    FROM
+      plants p
+    INNER JOIN
+      (
+        SELECT
+          u.zip,
+          u.username,
+          u.profile_pic,
+          u.city,
+          u.county,
+          u.state,
+          u.id,
+          ST_Distance(u.geolocation, distanceTable.geolocation) distance
+        FROM
+          users u,
+        LATERAL
+          (
+            SELECT
+              id,
+              geolocation
+            FROM
+              users
+            WHERE
+              users.id = $1
+          )
+        AS
+          distanceTable
+        WHERE
+          u.id != distanceTable.id
+        AND
+          ST_DWithin(
+            u.geolocation,
+            distanceTable.geolocation,
+            240000
+          )
+        ) withinTwenty
+        ON
+          p.user_id = withinTwenty.id
+        LEFT JOIN
+          favorites f
+        ON
+          f.plant_id = p.id
+        AND
+          f.user_id = $1
+        AND
+          f.deleted = false
+        LEFT JOIN
+          (
+            SELECT DISTINCT
+              t.pending,
+              t.plant_target_id,
+              t.plant_offer_id
+            FROM
+              trades t
+            INNER JOIN
+              plants2
+            ON
+              t.plant_target_id = p2.id
+            OR
+              t.plant_offer_id = p2.id
+            WHERE
+              p2.user_id = $1
+            AND
+              p2.deleted = false
+            ) userTrades
+        ON
+          userTrades.plant_target_id = p.id
+        OR
+          userTrades.plant_offer_id = p.id
+        AND
+          p.deleted = false
+        ORDER BY
+          distance;`
+
+
+
+
+
+ST_SetSRID(ST_MakePoint(
+        (SELECT longitude FROM coords),
+        (SELECT latitude FROM coords)), 4326)
+
+
+
+
+WITH currentZip as (SELECT *, ST_SetSRID(ST_MakePoint(longitude, latitude)) FROM zips WHERE ip = $1)
+SELECT
+  *
+FROM
+  zips
+LATERAL(
+  SELECT
+    (
+      SELECT
+        *
+      FROM
+        zips
+    )
+)
+
+ST_SetSRID(ST_MakePoint(
+        (SELECT longitude FROM coords),
+        (SELECT latitude FROM coords)), 4326)
+    )
+
+
+
+`
+ALTER TABLE
+  zips
+ADD
+  geolocation geography(point);
+`
+
+
+`
+SET
+  geolocation = ST_MakePoint(currentZip.longitude, currentZip.latitude)
+FROM
+  zips currentZip
+WHERE
+  zips.id = currentZip.id;`
+
+

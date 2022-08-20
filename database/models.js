@@ -1,8 +1,8 @@
 module.exports = {
   findByLocationQuery: `
-    SELECT
+    SELECT DISTINCT
       f.id favorite,
-      t.pending,
+      userTrades.pending,
       withinTwenty.username,
       p.id plant_id,
       p.plant_name,
@@ -13,10 +13,9 @@ module.exports = {
       withinTwenty.city,
       withinTwenty.county,
       withinTwenty.state,
-
       withinTwenty.distance
     FROM
-      plants p
+      (SELECT * FROM plants p WHERE p.deleted = false) p
     INNER JOIN
       (
         SELECT
@@ -51,21 +50,43 @@ module.exports = {
             240000
           )
         ) withinTwenty
-        ON
-          p.user_id = withinTwenty.id
+    ON
+      p.user_id = withinTwenty.id
     LEFT JOIN
-      trades t on t.plant_target_id = p.id
-    LEFT JOIN
-      favorites f on f.user_id = $1
-    AND
+      favorites f
+    ON
       f.plant_id = p.id
     AND
+      f.user_id = $1
+    AND
       f.deleted = false
-    WHERE
+    LEFT JOIN
+      (
+        SELECT DISTINCT
+          t.pending,
+          t.plant_target_id,
+          t.plant_offer_id
+        FROM
+          trades t
+        INNER JOIN
+          plants p2
+        ON
+          t.plant_target_id = p2.id
+        OR
+          t.plant_offer_id = p2.id
+        WHERE
+          p2.user_id = $1
+        AND
+          p2.deleted = false
+        ) userTrades
+    ON
+      userTrades.plant_target_id = p.id
+    OR
+      userTrades.plant_offer_id = p.id
+    AND
       p.deleted = false
     ORDER BY
-      distance
-    LIMIT 100;`,
+      distance;`,
 
   getMyPlantsQuery: `
     SELECT
@@ -91,27 +112,30 @@ module.exports = {
   getTradesQuery: `
     SELECT
       t.id trade_id,
+      (SELECT COUNT(*) FROM trades t WHERE (t.user_target_id = $1 AND t.shown_to_user_target = false) OR (t.user_offer_id = $1 AND t.shown_to_user_offer = false)) notifications,
       t.pending,
       t.accepted,
-      t.notifications1 + t.notifications2 notifications,
       t.shown_to_user_offer,
       t.shown_to_user_target,
       t.created_at,
-      JSON_BUILD_OBJECT
-      (
-        'plant_id',p.id,
-        'photo',p.photo,
-        'owner_id',p.user_id,
+      JSON_BUILD_OBJECT(
+        'plant_id', p.id,
+        'photo', p.photo,
+        'owner_id', p.user_id,
         'plant_name', p.plant_name,
         'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
       ) plant_target,
-      JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id,'plant_name',p.plant_name,'username',(SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )) plant_offer
+      JSON_BUILD_OBJECT(
+        'plant_id', p2.id,
+        'photo', p2.photo,
+        'owner_id', p2.user_id,
+        'plant_name', p2.plant_name,
+        'username', (SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )
+      ) plant_offer
     FROM
       (
         SELECT
-          *,
-          (SELECT COUNT(*) FROM trades t WHERE t.user_target_id = $1 AND t.shown_to_user_target = false) notifications1,
-          (SELECT COUNT(*) FROM trades t WHERE t.user_offer_id = $1 AND t.shown_to_user_offer  = false) notifications2
+          *
         FROM
           trades t
         WHERE
@@ -120,11 +144,11 @@ module.exports = {
           t.user_offer_id = $1
       ) t
     INNER JOIN
-      plants p
+      (SELECT * FROM plants p WHERE p.deleted = false) p
     ON
       p.id = t.plant_target_id
     INNER JOIN
-      plants p2
+      (SELECT * FROM plants p WHERE p.deleted = false) p2
     ON
       p2.id = t.plant_offer_id
     ORDER BY
@@ -163,47 +187,47 @@ module.exports = {
       f.created_at DESC;`,
 
   addUserQuery: `
-  WITH
-    coords
-  AS
-    (
-      SELECT
-        *
-      FROM
-        zips
-      WHERE
-        zip = $4
-    )
-  INSERT INTO
-    users
-    (
-      username,
-      firebase_id,
-      profile_pic,
-      zip,
-      city,
-      county,
-      state,
-      longitude,
-      latitude,
-      geolocation
-    )
-  VALUES
-    (
-      $1,
-      $2,
-      $3,
-      $4,
-      (SELECT city FROM coords),
-      (SELECT county FROM coords),
-      (SELECT state FROM coords),
-      (SELECT longitude FROM coords),
-      (SELECT latitude FROM coords),
-      ST_SetSRID(ST_MakePoint(
+    WITH
+      coords
+    AS
+      (
+        SELECT
+          *
+        FROM
+          zips
+        WHERE
+          zip = $4
+      )
+    INSERT INTO
+      users
+      (
+        username,
+        firebase_id,
+        profile_pic,
+        zip,
+        city,
+        county,
+        state,
+        longitude,
+        latitude,
+        geolocation
+      )
+    VALUES
+      (
+        $1,
+        $2,
+        $3,
+        $4,
+        (SELECT city FROM coords),
+        (SELECT county FROM coords),
+        (SELECT state FROM coords),
         (SELECT longitude FROM coords),
-        (SELECT latitude FROM coords)), 4326)
-    )
-  RETURNING id;`,
+        (SELECT latitude FROM coords),
+        ST_SetSRID(ST_MakePoint(
+          (SELECT longitude FROM coords),
+          (SELECT latitude FROM coords)), 4326)
+      )
+    RETURNING id;`,
 
   requestTradeQuery: `
     INSERT INTO
@@ -220,7 +244,8 @@ module.exports = {
           $1,
           (SELECT p.user_id FROM plants p WHERE p.id = $2),
           $2
-        )`,
+        )
+    RETURNING id`,
 
   addToFavoritesQuery: `
     WITH
@@ -255,7 +280,8 @@ module.exports = {
           trade_id,
           content
         )
-    VALUES ($1, $2, $3)`,
+    VALUES
+      ($1, $2, $3)`,
 
   updateQueryOne: `
     UPDATE
@@ -307,11 +333,20 @@ module.exports = {
     SET
       zip = $2,
       profile_pic = $3,
+      user_status = $4,
       city = (select city from coords),
       county = (select county from coords),
       state = (select state from coords),
       longitude = (select longitude from coords),
-      latitude = (select latitude from coords)
+      latitude = (select latitude from coords),
+      geolocation = (
+        SELECT
+          ST_SetSRID(
+            ST_MakePoint(
+              (SELECT longitude FROM coords),
+              (SELECT latitude FROM coords)
+              ), 4326)
+        )
     WHERE
       id = $1`,
 
@@ -353,24 +388,23 @@ module.exports = {
       user_id
     )
   VALUES
-  ($1, $2, $3)`,
+    ($1, $2, $3)`,
 
   findByLocationQueryFB: `
     WITH
       currentUser
     AS
-      (SELECT id FROM users WHERE firebase_id = $1)
-    SELECT
+     (SELECT id FROM users WHERE firebase_id = $1::text)
+    SELECT DISTINCT
       f.id favorite,
-      t.pending,
+      userTrades.pending,
       withinTwenty.username,
-      withinTwenty.zip,
       p.id plant_id,
       p.plant_name,
       p.photo,
       p.user_id,
-      withinTwenty.zip,
       withinTwenty.profile_pic,
+      withinTwenty.zip,
       withinTwenty.city,
       withinTwenty.county,
       withinTwenty.state,
@@ -411,50 +445,75 @@ module.exports = {
             240000
           )
         ) withinTwenty
-        ON
-          p.user_id = withinTwenty.id
+    ON
+      p.user_id = withinTwenty.id
     LEFT JOIN
-      trades t on t.plant_target_id = p.id
-    LEFT JOIN
-      favorites f on f.user_id = (SELECT id FROM currentUser)
-    AND
+      favorites f
+    ON
       f.plant_id = p.id
     AND
+      f.user_id = (SELECT id FROM currentUser)
+    AND
       f.deleted = false
-    WHERE
+    LEFT JOIN
+      (
+        SELECT DISTINCT
+          t.pending,
+          t.plant_target_id,
+          t.plant_offer_id
+        FROM
+          trades t
+        INNER JOIN
+          plants p2
+        ON
+          t.plant_target_id = p2.id
+        OR
+          t.plant_offer_id = p2.id
+        WHERE
+          p2.user_id = (SELECT id FROM currentUser)
+        AND
+          p2.deleted = false
+        ) userTrades
+    ON
+      userTrades.plant_target_id = p.id
+    OR
+      userTrades.plant_offer_id = p.id
+    AND
       p.deleted = false
     ORDER BY
-      distance
-    LIMIT 100;`,
+      distance;`,
 
   getTradesQueryFB: `
   WITH
     currentUser
   AS
-    (SELECT id FROM users WHERE firebase_id = $1)
+    (SELECT id FROM users WHERE firebase_id = $1::text)
   SELECT
     t.id trade_id,
+    (SELECT COUNT(*) FROM trades t WHERE (t.user_target_id = $1 AND t.shown_to_user_target = false) OR (t.user_offer_id = $1 AND t.shown_to_user_offer = false)) notifications,
     t.pending,
     t.accepted,
-    t.notifications1 + t.notifications2 notifications,
     t.shown_to_user_offer,
     t.shown_to_user_target,
     t.created_at,
-    JSON_BUILD_OBJECT
-    (
-      'plant_id',p.id,
-      'photo',p.photo,
-      'owner_id',p.user_id,
+    JSON_BUILD_OBJECT(
+      'plant_id', p.id,
+      'photo', p.photo,
+      'owner_id', p.user_id,
       'plant_name', p.plant_name,
       'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
     ) plant_target,
-    JSON_BUILD_OBJECT('plant_id',p2.id,'photo',p2.photo,'owner_id',p2.user_id,'plant_name',p.plant_name,'username',(SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )) plant_offer
+    JSON_BUILD_OBJECT(
+      'plant_id', p2.id,
+      'photo', p2.photo,
+      'owner_id', p2.user_id,
+      'plant_name', p2.plant_name,
+      'username', (SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )
+    ) plant_offer
   FROM
     (
       SELECT
-        *,
-        (SELECT COUNT(*) FROM trades t WHERE t.user_target_id = $1 AND t.shown_to_user_target = false) notifications1,
-        (SELECT COUNT(*) FROM trades t WHERE t.user_offer_id = $1 AND t.shown_to_user_offer  = false) notifications2
+        *
       FROM
         trades t
       WHERE
@@ -463,11 +522,11 @@ module.exports = {
         t.user_offer_id = (SELECT id FROM currentUser)
     ) t
   INNER JOIN
-    plants p
+    (SELECT * FROM plants p WHERE p.deleted = false) p
   ON
     p.id = t.plant_target_id
   INNER JOIN
-    plants p2
+    (SELECT * FROM plants p WHERE p.deleted = false) p2
   ON
     p2.id = t.plant_offer_id
   ORDER BY
@@ -477,7 +536,7 @@ module.exports = {
   WITH
     currentUser
   AS
-    (SELECT id FROM users WHERE firebase_id = $1)
+    (SELECT id FROM users WHERE firebase_id = $1::text)
   SELECT
       f.id favorites_id,
       f.distance,
@@ -511,7 +570,7 @@ module.exports = {
   WITH
     currentUser
   AS
-    (SELECT id FROM users WHERE firebase_id = $1)
+    (SELECT id FROM users WHERE firebase_id = $1::text)
   SELECT
     p.plant_name,
     p.id plant_id,

@@ -34,13 +34,12 @@ module.exports = {
   },
 
   editUser: function (req, res) {
-    console.log(req.body);
-    console.log(queryModels.editUserQuery);
     return db
       .queryAsync(queryModels.editUserQuery, [
         req.body.user_id,
         req.body.zip,
         req.body.profile_pic,
+        req.body.user_status,
       ])
       .then(() => {
         res.status(204).send();
@@ -121,6 +120,16 @@ module.exports = {
   },
 
   getTrades: function (req, res) {
+    if (
+      req.query.firebase_id === null ||
+      req.query.user_id === null ||
+      req.query.firebase_id === "null" ||
+      req.query.user_id === "null" ||
+      req.query.user_id === "undefined" ||
+      req.query.firebase_id === "undefined"
+    ) {
+      res.status(500).send();
+    }
     if (req.query.firebase_id) {
       return db
         .query(queryModels.getTradesQueryFB, [req.query.firebase_id])
@@ -149,7 +158,7 @@ module.exports = {
     const client = await pool.connect();
     try {
       client.query("BEGIN");
-      await Promise.all([
+      let z = await Promise.all([
         client.query(queryModels.requestTradeQuery, [
           req.body.plant_offer_id,
           req.body.plant_target_id,
@@ -159,7 +168,12 @@ module.exports = {
           req.body.trade_id,
         ]),
       ]);
-      res.status(201);
+      let x = z[0].rows[0].id;
+      client.query(
+        `INSERT INTO messages (user_id, trade_id, content) VALUES ($1, $2, 'Hey, wanna trade?')`,
+        [req.body.user_id, x]
+      ),
+        res.status(201);
       client.query("COMMIT");
     } catch (e) {
       console.log("requestTrade error", e);
