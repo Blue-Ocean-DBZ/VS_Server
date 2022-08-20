@@ -6,7 +6,8 @@ https://github.com/Blue-Ocean-DBZ/vegetationstation
 
 Directions:
 
-1. Install PostGIS on hosting server:
+1. Install Postgres Client and PostGIS on hosting server:
+   https://www.postgresql.org/download/
    https://postgis.net/install/
 
    Ubuntu or AWS server (use your version of postgres in terminal commands):
