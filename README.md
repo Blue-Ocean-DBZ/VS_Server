@@ -68,11 +68,6 @@ $ npm install
 $ npm run initialize
 ```
 
-If the database is created properly: \
-`Tables and indices created, PostGIS extension enabled`
-
-###### Congratulations! You now are hosting a server and database for the Vegestation Station iOS application.
-
 If you receive an error, double check your postgres permissions and follow up on any error messages.
 
 If any part of the initialization script ran (your credentials were valid) be sure to go into postgres CLI to \
@@ -92,7 +87,9 @@ $ npm run initialize
 Tables and indices created, PostGIS extension enabled
 ```
 
-================================================================================= \
+##### Congratulations! You now are hosting a server and database for the Vegestation Station iOS application.
+
+=================================================================================
 
 ## Vegestation Station Organization Git Workflow:
 
