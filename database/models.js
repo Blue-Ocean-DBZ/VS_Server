@@ -248,7 +248,7 @@ module.exports = {
 
   initialMessageQuery: `
     WITH
-    currentTarget
+      currentTarget
     AS
       (
         SELECT
@@ -262,15 +262,15 @@ module.exports = {
         WHERE
           t.user_target_id = (SELECT user_target_id FROM users u2 INNER JOIN trades t2 ON t2.user_offer_id = u2.id WHERE t2.id = $2)
       )
-      INSERT INTO
-        messages
-          (
-            user_id,
-            trade_id,
-            content
-          )
-      VALUES
-        ($1, $2, 'Hey, ' || (SELECT username::text FROM currentTarget) || ', wanna trade?')
+    INSERT INTO
+      messages
+        (
+          user_id,
+          trade_id,
+          content
+        )
+    VALUES
+      ($1, $2, 'Hey, ' || (SELECT username::text FROM currentTarget) || ', wanna trade?')
   `,
 
   addToFavoritesQuery: `

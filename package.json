@@ -7,7 +7,8 @@
     "addZips": "node scripts/newZips.js",
     "populate": "node scripts/populateDB.js",
     "initialize": "node scripts/initializeDB.js",
-    "start": "nodemon index.js",
+    "server-dev": "nodemon index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
