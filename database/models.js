@@ -225,8 +225,7 @@ module.exports = {
         (SELECT latitude FROM coords),
         ST_SetSRID(ST_MakePoint(
           (SELECT longitude FROM coords),
-          (SELECT latitude FROM coords)), 4326)
-      )
+          (SELECT latitude FROM coords)), 4326))
     RETURNING id;`,
 
   requestTradeQuery: `
@@ -247,6 +246,33 @@ module.exports = {
         )
     RETURNING id`,
 
+  initialMessageQuery: `
+    WITH
+    currentTarget
+    AS
+      (
+        SELECT
+          *
+        FROM
+          users u
+        INNER JOIN
+          trades t
+        ON
+          t.user_target_id = u.id
+        WHERE
+          t.user_target_id = (SELECT user_target_id FROM users u2 INNER JOIN trades t2 ON t2.user_offer_id = u2.id WHERE t2.id = $2)
+      )
+      INSERT INTO
+        messages
+          (
+            user_id,
+            trade_id,
+            content
+          )
+      VALUES
+        ($1, $2, 'Hey, ' || (SELECT username::text FROM currentTarget) || ', wanna trade?')
+  `,
+
   addToFavoritesQuery: `
     WITH
       coords
@@ -257,8 +283,8 @@ module.exports = {
       (select 1 here, geolocation from users u where u.id = $1)
     INSERT INTO
       favorites
-    (user_id, plant_id, distance)
-      VALUES
+        (user_id, plant_id, distance)
+    VALUES
       ($1, $2,
       (
         SELECT ST_Distance(
@@ -270,7 +296,7 @@ module.exports = {
           currentUser
         ON
           currentUser.here = coords.there)
-    )`,
+      )`,
 
   createMessageQuery: `
     INSERT INTO
@@ -282,6 +308,15 @@ module.exports = {
         )
     VALUES
       ($1, $2, $3)`,
+
+  removeFavoriteQuery: `
+    UPDATE
+      favorites
+    SET
+      deleted = true
+    WHERE
+      id = $1
+    `,
 
   updateQueryOne: `
     UPDATE
@@ -380,15 +415,15 @@ module.exports = {
       created_at;`,
 
   addPlantQuery: `
-  INSERT INTO
-    plants
-    (
-      plant_name,
-      photo,
-      user_id
-    )
-  VALUES
-    ($1, $2, $3)`,
+    INSERT INTO
+      plants
+      (
+        plant_name,
+        photo,
+        user_id
+      )
+    VALUES
+      ($1, $2, $3)`,
 
   findByLocationQueryFB: `
     WITH
@@ -484,60 +519,60 @@ module.exports = {
       distance;`,
 
   getTradesQueryFB: `
-  WITH
-    currentUser
-  AS
-    (SELECT id FROM users WHERE firebase_id = $1::text)
-  SELECT
-    t.id trade_id,
-    (SELECT COUNT(*) FROM trades t WHERE (t.user_target_id = $1 AND t.shown_to_user_target = false) OR (t.user_offer_id = $1 AND t.shown_to_user_offer = false)) notifications,
-    t.pending,
-    t.accepted,
-    t.shown_to_user_offer,
-    t.shown_to_user_target,
-    t.created_at,
-    JSON_BUILD_OBJECT(
-      'plant_id', p.id,
-      'photo', p.photo,
-      'owner_id', p.user_id,
-      'plant_name', p.plant_name,
-      'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
-    ) plant_target,
-    JSON_BUILD_OBJECT(
-      'plant_id', p2.id,
-      'photo', p2.photo,
-      'owner_id', p2.user_id,
-      'plant_name', p2.plant_name,
-      'username', (SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )
-    ) plant_offer
-  FROM
-    (
-      SELECT
-        *
-      FROM
-        trades t
-      WHERE
-        t.user_target_id = (SELECT id FROM currentUser)
-      OR
-        t.user_offer_id = (SELECT id FROM currentUser)
-    ) t
-  INNER JOIN
-    (SELECT * FROM plants p WHERE p.deleted = false) p
-  ON
-    p.id = t.plant_target_id
-  INNER JOIN
-    (SELECT * FROM plants p WHERE p.deleted = false) p2
-  ON
-    p2.id = t.plant_offer_id
-  ORDER BY
-    created_at DESC`,
+    WITH
+      currentUser
+    AS
+      (SELECT id FROM users WHERE firebase_id = $1::text)
+    SELECT
+      t.id trade_id,
+      (SELECT COUNT(*) FROM trades t WHERE (t.user_target_id = $1 AND t.shown_to_user_target = false) OR (t.user_offer_id = $1 AND t.shown_to_user_offer = false)) notifications,
+      t.pending,
+      t.accepted,
+      t.shown_to_user_offer,
+      t.shown_to_user_target,
+      t.created_at,
+      JSON_BUILD_OBJECT(
+        'plant_id', p.id,
+        'photo', p.photo,
+        'owner_id', p.user_id,
+        'plant_name', p.plant_name,
+        'username', (SELECT username FROM users INNER JOIN plants p3 ON p3.user_id = users.id WHERE p3.id = p.id )
+      ) plant_target,
+      JSON_BUILD_OBJECT(
+        'plant_id', p2.id,
+        'photo', p2.photo,
+        'owner_id', p2.user_id,
+        'plant_name', p2.plant_name,
+        'username', (SELECT username FROM users INNER JOIN plants p4 ON p4.user_id = users.id WHERE p4.id = p2.id )
+      ) plant_offer
+    FROM
+      (
+        SELECT
+          *
+        FROM
+          trades t
+        WHERE
+          t.user_target_id = (SELECT id FROM currentUser)
+        OR
+          t.user_offer_id = (SELECT id FROM currentUser)
+      ) t
+    INNER JOIN
+      (SELECT * FROM plants p WHERE p.deleted = false) p
+    ON
+      p.id = t.plant_target_id
+    INNER JOIN
+      (SELECT * FROM plants p WHERE p.deleted = false) p2
+    ON
+      p2.id = t.plant_offer_id
+    ORDER BY
+      created_at DESC`,
 
   getFavoritesQueryFB: `
-  WITH
-    currentUser
-  AS
-    (SELECT id FROM users WHERE firebase_id = $1::text)
-  SELECT
+    WITH
+      currentUser
+    AS
+      (SELECT id FROM users WHERE firebase_id = $1::text)
+    SELECT
       f.id favorites_id,
       f.distance,
       u.username,
@@ -567,28 +602,27 @@ module.exports = {
       f.created_at DESC;`,
 
   getMyPlantsQueryFB: `
-  WITH
-    currentUser
-  AS
-    (SELECT id FROM users WHERE firebase_id = $1::text)
-  SELECT
-    p.plant_name,
-    p.id plant_id,
-    p.photo,
-    p.created_at,
-    u.zip,
-    u.id user_id
-  FROM
-    plants p
-  INNER JOIN
-    users u
-  ON
-    u.id = p.user_id
-  WHERE
-    user_id = (SELECT id FROM currentUser)
-  AND
-    p.deleted = false
-  ORDER BY
-    p.created_at DESC;
-  `,
+    WITH
+      currentUser
+    AS
+      (SELECT id FROM users WHERE firebase_id = $1::text)
+    SELECT
+      p.plant_name,
+      p.id plant_id,
+      p.photo,
+      p.created_at,
+      u.zip,
+      u.id user_id
+    FROM
+      plants p
+    INNER JOIN
+      users u
+    ON
+      u.id = p.user_id
+    WHERE
+      user_id = (SELECT id FROM currentUser)
+    AND
+      p.deleted = false
+    ORDER BY
+      p.created_at DESC;`,
 };

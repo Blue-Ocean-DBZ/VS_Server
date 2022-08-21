@@ -24,7 +24,6 @@ module.exports = {
         req.body.zip,
       ])
       .then((response) => {
-        console.log(response[0].rows[0].id);
         res.status(201).send(response[0].rows[0].id.toString());
       })
       .catch((err) => {
@@ -107,9 +106,7 @@ module.exports = {
 
   removeFromFavorites: function (req, res) {
     return db
-      .queryAsync(`UPDATE favorites SET deleted = true WHERE id = $1`, [
-        req.query.favorites_id,
-      ])
+      .queryAsync(queryModels.removeFavoriteQuery, [req.query.favorites_id])
       .then(() => {
         res.status(204).send();
       })
@@ -120,16 +117,6 @@ module.exports = {
   },
 
   getTrades: function (req, res) {
-    if (
-      req.query.firebase_id === null ||
-      req.query.user_id === null ||
-      req.query.firebase_id === "null" ||
-      req.query.user_id === "null" ||
-      req.query.user_id === "undefined" ||
-      req.query.firebase_id === "undefined"
-    ) {
-      res.status(500).send();
-    }
     if (req.query.firebase_id) {
       return db
         .query(queryModels.getTradesQueryFB, [req.query.firebase_id])
@@ -140,7 +127,7 @@ module.exports = {
           console.log("getTradesFB error", err);
           res.status(500).send();
         });
-    } else {
+    } else if (req.query.user_id) {
       return db
         .query(queryModels.getTradesQuery, [req.query.user_id])
         .then((response) => {
@@ -150,6 +137,8 @@ module.exports = {
           console.log("getTrades error", err);
           res.status(500).send();
         });
+    } else {
+      res.status(500).send();
     }
   },
 
@@ -169,10 +158,7 @@ module.exports = {
         ]),
       ]);
       let x = z[0].rows[0].id;
-      client.query(
-        `INSERT INTO messages (user_id, trade_id, content) VALUES ($1, $2, 'Hey, wanna trade?')`,
-        [req.body.user_id, x]
-      ),
+      client.query(queryModels.initialMessageQuery, [req.body.user_id, x]),
         res.status(201);
       client.query("COMMIT");
     } catch (e) {
@@ -294,7 +280,6 @@ module.exports = {
   },
 
   removePlant: function (req, res) {
-    console.log(req.query);
     return db
       .queryAsync(`UPDATE plants SET deleted = true WHERE id = $1`, [
         req.query.plant_id,
@@ -338,7 +323,6 @@ module.exports = {
         req.query.firebase_id,
       ])
       .then((response) => {
-        console.log(response[0].rows[0]);
         res.status(200).send(response[0].rows[0]);
       })
       .catch((err) => {
@@ -349,7 +333,6 @@ module.exports = {
 
   findByLocation: function (req, res) {
     if (req.query.firebase_id) {
-      console.log("we here");
       return db
         .queryAsync(queryModels.findByLocationQueryFB, [req.query.firebase_id])
         .then((response) => {

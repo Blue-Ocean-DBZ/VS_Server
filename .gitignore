@@ -4,3 +4,4 @@
 node_modules
 data/zip_code_database_latlong.csv
 data/zip_code_database_truncated.csv
+scripts/playground.sql

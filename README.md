@@ -20,14 +20,14 @@ Directions:
    3a. If you are hosting the server locally, move zip_code_database_truncated.csv to your data directory inside the repository.
    3b. If you are hosting the server through AWS, move zip_code_database_truncated.csv to your /tmp directory.
 
-4. Go into Postgres CLI using psql and create the database with the name you intend to use:
+4. Go into Postgres CLI using psql and create the database with the credentials you intend to use:
    root=# CREATE DATABASE vegetationstation
    CREATE DATABASE
 
 5. Create a .env in the root directory of this repository that includes:
    PORT
    DB_NAME
-   DB_HOST
+   DB_HOST=localhost
    DB_USER
    DB_PASS
    DB_PORT
@@ -41,6 +41,7 @@ Directions:
    DB_HOST=localhost
    DB_USER=root
    DB_PASS=rootPassword
+   DB_PORT=5432
    ZIPS_PATH=data/zip_code_database_truncated.csv
 
 (If you're using AWS server, use ZIPS_PATH=/tmp/zip_code_database_truncated.csv)
