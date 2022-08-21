@@ -122,20 +122,22 @@ Before starting work, start a ticket on the trello board! \
 ` $ git checkout [-b] <newOrExistingBranch>`
 
 After frequent and descriptive commits: \
- -- checkout main \
- -- pull recent changes \
- -- merge main into your feature branch (handle any conflicts locally) \
- -- push changes \
- -- create pull request with target of main \
- -- have two members review your code and accept your PR \
- -- Squash And Merge (with summary of all changes) \
- -- pull changes into your main branch \
- -- checkout a new or existing branch
+
+- [] checkout main \
+- [] pull recent changes \
+- [] merge main into your feature branch (handle any conflicts locally) \
+- [] push changes \
+- [] create pull request with target of main \
+- [] have two members review your code and accept your PR \
+- [] Squash And Merge (with summary of all changes) \
+- [] pull changes into your main branch \
+- [] checkout a new or existing branch
 
 To Do: \
- -- Add constraints to schema to prevent duplicate entries and inconsistent data. \
- -- Coordinate front end authorization with database; do not allow unauthorized users to manipulate database \
- -- Test queries with greater scrutiny, clean up and filter out redundancies and inefficiencies \
- -- Add script to populate area with reasonable and complete data \
- -- Retool schema && queries to use trade components (multi-plant trades) \
- -- Set up router with cleaner endpoints to increase scalability
+
+- [] Add constraints to schema to prevent duplicate entries and inconsistent data. \
+- [] Coordinate front end authorization with database; do not allow unauthorized users to manipulate database \
+- [] Test queries with greater scrutiny, clean up and filter out redundancies and inefficiencies \
+- [] Add script to populate area with reasonable and complete data \
+- [] Retool schema && queries to use trade components (multi-plant trades) \
+- [] Set up router with cleaner endpoints to increase scalability
