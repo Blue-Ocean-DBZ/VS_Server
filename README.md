@@ -33,7 +33,7 @@ root=# CREATE DATABASE vegetationstation
 CREATE DATABASE
 ```
 
-# 5. Create a .env in the root directory of this repository that includes:
+## 5. Create a .env in the root directory of this repository that includes:
 
 ```
 PORT
@@ -47,7 +47,7 @@ ZIPS_PATH
 
 DB_HOST, DB_USER and DB_PASS should be the valid credentials of a postgres user and role.
 
-# Example .env: \
+# Example .env:
 
 ```
 PORT=3000
@@ -60,23 +60,24 @@ ZIPS_PATH=data/zip_code_database_truncated.csv
 ```
 
 If you're using AWS server, use \
-`ZIPS_PATH=/tmp/zip_code_database_truncated.csv)`
+`ZIPS_PATH=/tmp/zip_code_database_truncated.csv`
 
-# 6. Navigate into the root directory of this repository in terminal and run
+## 6. Navigate into the root directory of this repository in terminal and run
 
 ```
 $ npm install
 $ npm run initialize
 ```
 
-If the database is created properly:
+If the database is created properly: \
 `Tables and indices created, PostGIS extension enabled`
 
 Congratulations! You now are hosting a server and database for the Vegestation Station iOS application.
 
 If you receive an error, double check your postgres permissions and follow up on any error messages.
 
-If any part of the initialization script ran (your credentials were valid) be sure to go into postgres CLI \ to drop and recreate the database.
+If any part of the initialization script ran (your credentials were valid) be sure to go into postgres CLI to \
+drop and recreate the database.
 
 ```
 root=# DROP DATABASE vegetationstation;
@@ -94,7 +95,7 @@ Tables and indices created, PostGIS extension enabled
 
 ================================================================================= \
 
-# Vegestation Station Organization Git Workflow:
+## Vegestation Station Organization Git Workflow:
 
 To avoid commits and pushes to main, in root directory:
 
@@ -123,7 +124,7 @@ After frequent and descriptive commits: \
 -- have two members review your code and accept your PR \
 -- Squash And Merge (with summary of all changes) \
 -- pull changes into your main branch \
--- checkout a new or existing branch \
+-- checkout a new or existing branch
 
 To Dos: \
 -- Add constraints to schema to prevent duplicate entries and inconsistent data. \
