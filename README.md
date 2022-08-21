@@ -97,25 +97,22 @@ npm start
 
 ========================================================================================
 
+
 ## Vegestation Station Organization Git Workflow:
 
 To avoid commits and pushes to main, in root directory:
 
 ```
-
 $ git config core.hooksPath githooks
 $ chmod +x githooks/pre-commit
-
 ```
 
 If you've made changes on the main branch accidentally and want to move them:
 
 ```
-
 $ git stash
 $ git checkout [-b] <newOrExistingBranch>
 $ git stash pop
-
 ```
 
 Before starting work, start a ticket on the trello board! \
