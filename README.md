@@ -33,7 +33,7 @@ root=# CREATE DATABASE vegetationstation
 CREATE DATABASE
 ```
 
-## 5. Create a .env in the root directory of this repository that includes:
+### 5. Create a .env in the root directory of this repository that includes:
 
 ```
 PORT
@@ -47,7 +47,7 @@ ZIPS_PATH
 
 DB_HOST, DB_USER and DB_PASS should be the valid credentials of a postgres user and role.
 
-# Example .env:
+### Example .env:
 
 ```
 PORT=3000
@@ -62,7 +62,7 @@ ZIPS_PATH=data/zip_code_database_truncated.csv
 If you're using AWS server, use \
 `ZIPS_PATH=/tmp/zip_code_database_truncated.csv`
 
-## 6. Navigate into the root directory of this repository in terminal and run
+### 6. Navigate into the root directory of this repository in terminal and run
 
 ```
 $ npm install
