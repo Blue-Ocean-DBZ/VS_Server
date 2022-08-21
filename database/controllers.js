@@ -13,7 +13,6 @@ const pool = new Pool({
 
 const db = Promise.promisifyAll(pool, { multiArgs: true });
 
-//valid zip on update
 module.exports = {
   addUser: function (req, res) {
     return db
@@ -169,18 +168,6 @@ module.exports = {
       client.release();
       res.send();
     }
-    // return db
-    //   .queryAsync(queryModels.requestTradeQuery, [
-    //     req.body.plant_offer_id,
-    //     req.body.plant_target_id,
-    //   ])
-    //   .then(() => {
-    //     res.status(201).send();
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //     res.status(500).send();
-    //   });
   },
 
   getMessages: function (req, res) {

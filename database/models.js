@@ -1,7 +1,7 @@
 module.exports = {
   findByLocationQuery: `
     SELECT DISTINCT
-      f.id favorite,
+      f.id favorites_id,
       userTrades.pending,
       withinTwenty.username,
       p.id plant_id,
@@ -274,29 +274,20 @@ module.exports = {
   `,
 
   addToFavoritesQuery: `
-    WITH
-      coords
-    AS
-      (select 1 there, p.id, geolocation from plants p inner join users u on p.user_id = u.id where p.id = $2),
-      currentUser
-    AS
-      (select 1 here, geolocation from users u where u.id = $1)
     INSERT INTO
       favorites
-        (user_id, plant_id, distance)
-    VALUES
-      ($1, $2,
-      (
-        SELECT ST_Distance(
-          coords.geolocation,
-          currentUser.geolocation)
-        FROM
-          coords
-        INNER JOIN
-          currentUser
-        ON
-          currentUser.here = coords.there)
-      )`,
+        (
+          user_id,
+          plant_id,
+          distance
+        )
+        VALUES
+          ($1, $2,
+          (
+          SELECT ST_Distance(
+            (SELECT geolocation FROM users u INNER JOIN plants p ON p.user_id = u.id WHERE p.id = $2),
+            (SELECT geolocation FROM users u WHERE id = $1))
+          ))`,
 
   createMessageQuery: `
     INSERT INTO
@@ -391,7 +382,7 @@ module.exports = {
     SET
       pending = false,
       accepted = $3,
-      created_AT = CURRENT_TIMESTAMP
+      created_at = CURRENT_TIMESTAMP
     WHERE
       id = $2
     AND
@@ -431,7 +422,7 @@ module.exports = {
     AS
      (SELECT id FROM users WHERE firebase_id = $1::text)
     SELECT DISTINCT
-      f.id favorite,
+      f.id favorites_id,
       userTrades.pending,
       withinTwenty.username,
       p.id plant_id,
