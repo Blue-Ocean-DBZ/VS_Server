@@ -22,8 +22,7 @@ https://drive.google.com/file/d/1goWqtapby-GUMo2CpyX8Tyd99dE5qPB_/view?usp=shari
 
 #### 3. Move zip_code_database_truncated.csv to appropriate folder.
 
-If you are hosting the server locally, move zip_code_database_truncated.csv to /data.
-
+If you are hosting the server locally, move zip_code_database_truncated.csv to /data. \
 If you are hosting the server through AWS, move zip_code_database_truncated.csv to your /tmp directory.
 
 #### 4. Go into Postgres CLI using psql and create the database with the credentials you intend to use:
@@ -72,7 +71,7 @@ $ npm run initialize
 If the database is created properly: \
 `Tables and indices created, PostGIS extension enabled`
 
-Congratulations! You now are hosting a server and database for the Vegestation Station iOS application.
+###### Congratulations! You now are hosting a server and database for the Vegestation Station iOS application.
 
 If you receive an error, double check your postgres permissions and follow up on any error messages.
 
