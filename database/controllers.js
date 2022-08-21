@@ -13,7 +13,6 @@ const pool = new Pool({
 
 const db = Promise.promisifyAll(pool, { multiArgs: true });
 
-//valid zip on update
 module.exports = {
   addUser: function (req, res) {
     return db
