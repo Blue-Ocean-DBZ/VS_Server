@@ -2,8 +2,10 @@ const express = require("express");
 const controllers = require("./database/controllers.js");
 require("dotenv").config();
 const app = express();
+const cors = require("cors");
 
 app.use(express.json());
+app.use(cors());
 
 app.get("/all", controllers.findByLocation);
 
