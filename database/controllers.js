@@ -13,7 +13,6 @@ const pool = new Pool({
 
 const db = Promise.promisifyAll(pool, { multiArgs: true });
 
-//valid zip on update
 module.exports = {
   addUser: function (req, res) {
     return db
@@ -24,7 +23,6 @@ module.exports = {
         req.body.zip,
       ])
       .then((response) => {
-        console.log(response[0].rows[0].id);
         res.status(201).send(response[0].rows[0].id.toString());
       })
       .catch((err) => {
@@ -34,13 +32,12 @@ module.exports = {
   },
 
   editUser: function (req, res) {
-    console.log(req.body);
-    console.log(queryModels.editUserQuery);
     return db
       .queryAsync(queryModels.editUserQuery, [
         req.body.user_id,
         req.body.zip,
         req.body.profile_pic,
+        req.body.user_status,
       ])
       .then(() => {
         res.status(204).send();
@@ -108,9 +105,7 @@ module.exports = {
 
   removeFromFavorites: function (req, res) {
     return db
-      .queryAsync(`UPDATE favorites SET deleted = true WHERE id = $1`, [
-        req.query.favorites_id,
-      ])
+      .queryAsync(queryModels.removeFavoriteQuery, [req.query.favorites_id])
       .then(() => {
         res.status(204).send();
       })
@@ -131,7 +126,7 @@ module.exports = {
           console.log("getTradesFB error", err);
           res.status(500).send();
         });
-    } else {
+    } else if (req.query.user_id) {
       return db
         .query(queryModels.getTradesQuery, [req.query.user_id])
         .then((response) => {
@@ -141,6 +136,8 @@ module.exports = {
           console.log("getTrades error", err);
           res.status(500).send();
         });
+    } else {
+      res.status(500).send();
     }
   },
 
@@ -149,7 +146,7 @@ module.exports = {
     const client = await pool.connect();
     try {
       client.query("BEGIN");
-      await Promise.all([
+      let z = await Promise.all([
         client.query(queryModels.requestTradeQuery, [
           req.body.plant_offer_id,
           req.body.plant_target_id,
@@ -159,7 +156,9 @@ module.exports = {
           req.body.trade_id,
         ]),
       ]);
-      res.status(201);
+      let x = z[0].rows[0].id;
+      client.query(queryModels.initialMessageQuery, [req.body.user_id, x]),
+        res.status(201);
       client.query("COMMIT");
     } catch (e) {
       console.log("requestTrade error", e);
@@ -169,18 +168,6 @@ module.exports = {
       client.release();
       res.send();
     }
-    // return db
-    //   .queryAsync(queryModels.requestTradeQuery, [
-    //     req.body.plant_offer_id,
-    //     req.body.plant_target_id,
-    //   ])
-    //   .then(() => {
-    //     res.status(201).send();
-    //   })
-    //   .catch((err) => {
-    //     console.log(err);
-    //     res.status(500).send();
-    //   });
   },
 
   getMessages: function (req, res) {
@@ -280,7 +267,6 @@ module.exports = {
   },
 
   removePlant: function (req, res) {
-    console.log(req.query);
     return db
       .queryAsync(`UPDATE plants SET deleted = true WHERE id = $1`, [
         req.query.plant_id,
@@ -324,7 +310,6 @@ module.exports = {
         req.query.firebase_id,
       ])
       .then((response) => {
-        console.log(response[0].rows[0]);
         res.status(200).send(response[0].rows[0]);
       })
       .catch((err) => {
@@ -335,7 +320,6 @@ module.exports = {
 
   findByLocation: function (req, res) {
     if (req.query.firebase_id) {
-      console.log("we here");
       return db
         .queryAsync(queryModels.findByLocationQueryFB, [req.query.firebase_id])
         .then((response) => {
