@@ -431,8 +431,6 @@ module.exports = {
       p.user_id,
       withinTwenty.profile_pic,
       withinTwenty.zip,
-      withinTwenty.profile_pic,
-      withinTwenty.zip,
       withinTwenty.city,
       withinTwenty.county,
       withinTwenty.state,
