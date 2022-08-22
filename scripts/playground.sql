@@ -30,6 +30,20 @@ WHERE
 AND
   p.deleted = false;
 
+SELECT
+  p.*
+FROM
+  plants pl
+INNER JOIN
+  favorites f
+ON
+  pl.id = f.plant_id
+WHERE
+  f.user_id = $1
+AND
+  pl.deleted = false
+ORDER BY DESC;
+
 
 
 select JSON_BUILD_OBJECT('user_id',1,'favorites', JSON_AGG(favoritePlants.plantObj))
