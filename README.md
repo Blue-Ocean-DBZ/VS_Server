@@ -95,7 +95,7 @@ npm start
 
 ##### Congratulations! You now are hosting a server and database for the Vegetation Station iOS application.
 
-======================================================================================
+==================================================================================
 
 
 ## Vegestation Station Organization Git Workflow:
