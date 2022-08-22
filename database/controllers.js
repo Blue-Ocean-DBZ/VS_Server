@@ -157,7 +157,10 @@ module.exports = {
         ]),
       ]);
       let x = z[0].rows[0].id;
-      client.query(queryModels.initialMessageQuery, [req.body.user_id, x]),
+      client.query(
+        "INSERT INTO messages (user_id, trade_id, content) VALUES ($1, $2, 'Hey, wanna trade?')",
+        [req.body.user_id, x]
+      ),
         res.status(201);
       client.query("COMMIT");
     } catch (e) {

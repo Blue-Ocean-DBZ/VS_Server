@@ -1090,3 +1090,5 @@ WHERE
 
 WITH otherUser as (SELECT u.username, u.id FROM users u inner join trades t on t.id = $2)
 `INSERT INTO messages (user_id, trade_id, content) VALUES ($1, $2, ('Hey, ' + otherUser.username + ', wanna trade?')`,
+
+
