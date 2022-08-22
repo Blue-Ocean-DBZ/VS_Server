@@ -93,7 +93,7 @@ Lastly, start your server.
 npm start
 ```
 
-##### Congratulations! You now are hosting a server and database for the Vegestation Station iOS application.
+##### Congratulations! You now are hosting a server and database for the Vegetation Station iOS application.
 
 ========================================================================================
 
