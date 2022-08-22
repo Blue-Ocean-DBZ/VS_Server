@@ -13,7 +13,7 @@ const pool = new Pool({
 });
 
 const db = Promise.promisifyAll(pool, { multiArgs: true });
-
+//Roseville [38.7, -121.2]
 // SF [122.4, 37.8]
 
 let populateData = async function () {
