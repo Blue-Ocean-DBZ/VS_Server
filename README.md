@@ -70,8 +70,8 @@ $ npm run initialize
 
 If you receive an error, double check your postgres permissions and follow up on any error messages.
 
-If any part of the initialization script ran with an error (your credentials were valid) be sure to go into postgres CLI to \
-drop and recreate the database.
+If any part of the initialization script ran with an error (your credentials were valid) be sure to go into postgres CLI \
+to drop and recreate the database.
 
 ```
 root=# DROP DATABASE vegetationstation;
