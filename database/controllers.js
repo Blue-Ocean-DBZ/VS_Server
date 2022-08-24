@@ -1,6 +1,6 @@
 const { Pool } = require("pg");
 const Promise = require("bluebird");
-require("dotenv").config();
+const dotenv = require("dotenv").config();
 const queryModels = require("./models.js");
 
 const pool = new Pool({
