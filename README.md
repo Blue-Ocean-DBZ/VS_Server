@@ -1,4 +1,4 @@
-## Vegetation Station Server && Database
+## Vegetation Station Server and Database
 
 https://github.com/Blue-Ocean-DBZ/
 
